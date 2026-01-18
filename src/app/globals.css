@@ -1,0 +1,89 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 220 20% 97%;
+    --foreground: 222 15% 20%;
+    --card: 210 40% 99%;
+    --card-foreground: 222 20% 20%;
+    --popover: 210 33% 98%;
+    --popover-foreground: 222 20% 20%;
+    --primary: 222 75% 55%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 220 15% 85%;
+    --secondary-foreground: 222 30% 20%;
+    --muted: 220 15% 94%;
+    --muted-foreground: 222 10% 45%;
+    --accent: 220 15% 90%;
+    --accent-foreground: 222 20% 25%;
+    --destructive: 0 72% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 220 15% 90%;
+    --input: 220 15% 90%;
+    --ring: 222 75% 55%;
+    --sidebar-background: 220 45% 98%;
+    --sidebar-foreground: 222 20% 20%;
+    --sidebar-primary: 222 75% 55%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 222 75% 55%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 220 15% 90%;
+    --sidebar-ring: 222 75% 55%;
+  }
+
+  .dark {
+    --background: 230 30% 6%;
+    --foreground: 0 0% 98%;
+    --card: 230 25% 10%;
+    --card-foreground: 0 0% 98%;
+    --popover: 230 30% 6%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 265 85% 70%;
+    --primary-foreground: 0 0% 10%;
+    --secondary: 230 20% 15%;
+    --secondary-foreground: 0 0% 95%;
+    --muted: 230 20% 18%;
+    --muted-foreground: 230 10% 65%;
+    --accent: 230 20% 12%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 358 70% 55%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 230 20% 15%;
+    --input: 230 20% 15%;
+    --ring: 265 85% 70%;
+    --sidebar-background: 230 25% 8%;
+    --sidebar-foreground: 0 0% 98%;
+    --sidebar-primary: 265 80% 75%;
+    --sidebar-primary-foreground: 265 20% 10%;
+    --sidebar-accent: 230 20% 12%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 230 20% 15%;
+    --sidebar-ring: 265 80% 75%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+  .perspective-1000 {
+    perspective: 1000px;
+  }
+  .transform-style-3d {
+    transform-style: preserve-3d;
+  }
+  .backface-hidden {
+    backface-visibility: hidden;
+  }
+  .rotate-y-180 {
+    transform: rotateY(180deg);
+  }
+}

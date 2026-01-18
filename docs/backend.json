@@ -1,0 +1,155 @@
+{
+  "entities": {
+    "User": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "User",
+      "type": "object",
+      "description": "Represents a user of the StudyBuddy application.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the user entity."
+        },
+        "email": {
+          "type": "string",
+          "description": "Email address of the user.",
+          "format": "email"
+        },
+        "displayName": {
+          "type": "string",
+          "description": "The display name of the user."
+        },
+        "creationDate": {
+          "type": "string",
+          "description": "The date and time the user was created.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "email",
+        "displayName",
+        "creationDate"
+      ]
+    },
+    "Study": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Study",
+      "type": "object",
+      "description": "Represents a single study activity conducted by a user, such as a tutor session, a quiz, or a set of flashcards.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the study entity."
+        },
+        "userId": {
+          "type": "string",
+          "description": "The ID of the user who owns this study item."
+        },
+        "type": {
+          "type": "string",
+          "description": "The type of study activity.",
+          "enum": ["tutor", "summaries", "flashcards", "quizzes"]
+        },
+        "topic": {
+          "type": "string",
+          "description": "The main topic of the study session (e.g., 'Photosynthesis', 'World War II')."
+        },
+        "createdAt": {
+          "description": "The server-side timestamp when the study item was created."
+        },
+        "messages": {
+          "type": "array",
+          "description": "For 'tutor' type: an array of conversation messages.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "role": { "type": "string", "enum": ["user", "assistant"] },
+              "content": { "type": "string" }
+            },
+            "required": ["role", "content"]
+          }
+        },
+        "notes": {
+          "type": "string",
+          "description": "For 'summaries' type: the original notes that were summarized."
+        },
+        "summary": {
+          "type": "string",
+          "description": "For 'summaries' type: the AI-generated summary."
+        },
+        "flashcards": {
+          "type": "array",
+          "description": "For 'flashcards' type: an array of flashcard objects.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "front": { "type": "string" },
+              "back": { "type": "string" }
+            },
+            "required": ["front", "back"]
+          }
+        },
+        "quiz": {
+          "type": "array",
+          "description": "For 'quizzes' type: an array of quiz question objects.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "question": { "type": "string" },
+              "type": { "type": "string", "enum": ["multiple-choice", "true-false"] },
+              "options": { "type": "array", "items": { "type": "string" } },
+              "answer": { "type": "string" },
+              "explanation": { "type": "string" }
+            },
+            "required": ["question", "type", "answer", "explanation"]
+          }
+        }
+      },
+      "required": ["id", "userId", "type", "createdAt"]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "google.com"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/studies/{studyId}",
+        "definition": {
+          "entityName": "Study",
+          "schema": {
+            "$ref": "#/backend/entities/Study"
+          },
+          "description": "Stores all user-generated study materials, including tutor conversations, summaries, flashcards, and quizzes. Access is strictly limited to the user who owns the document, enforced by security rules checking the 'userId' field.",
+          "params": [
+            {
+              "name": "studyId",
+              "description": "The unique identifier of the study document."
+            }
+          ]
+        }
+      },
+       {
+        "path": "/users/{userId}",
+        "definition": {
+          "entityName": "User",
+          "schema": {
+            "$ref": "#/backend/entities/User"
+          },
+          "description": "Stores public user profile information. Each document is keyed by the user's UID. Users can create and update their own profile, but cannot delete it or modify others' profiles.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The user's unique ID (UID) from Firebase Authentication."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "A 'studies' collection stores all user-generated content, secured by a 'userId' field. A separate 'users' collection stores public profile data, keyed by UID, which allows for user-specific data to be managed separately from their private study materials. This separation enhances security and data organization."
+  }
+}

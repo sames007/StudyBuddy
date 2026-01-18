@@ -1,0 +1,64 @@
+
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // The 'studies' collection holds all user-generated content, such as
+    // tutor conversations, notes summaries, flashcards, and quizzes.
+    match /studies/{studyId} {
+
+      /**
+       * ALLOW READ (get, list):
+       * A user can read a document if they are signed in and their user ID
+       * matches the 'userId' field stored in that document.
+       * For list operations (queries), this rule is combined with a query
+       * constraint on the client-side (e.g., where("userId", "==", user.uid))
+       * to ensure users can only query for their own documents.
+       */
+      allow read: if request.auth != null && request.auth.uid == resource.data.userId;
+
+      /**
+       * ALLOW CREATE:
+       * A user can create a new document if they are signed in and they are
+       * setting the 'userId' field to their own user ID. This ensures that
+       * all new documents are correctly owned from the moment of creation.
+       */
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+
+      /**
+       * ALLOW UPDATE, DELETE:
+       * A user can update or delete an existing document if they are signed
+       * in and their user ID matches the 'userId' field on the document
+       * that is being modified. This prevents users from altering or deleting
+       * each other's data.
+       */
+      allow update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
+    }
+
+    // The 'users' collection stores public-facing profile information for each user.
+    match /users/{userId} {
+       /**
+       * ALLOW READ:
+       * Anyone can read a user's profile information. This is useful for public-facing
+       * features, but contains no sensitive data.
+       */
+      allow read: if true;
+
+      /**
+       * ALLOW CREATE, UPDATE:
+       * A user can create or update their own profile document. The {userId} wildcard
+       * must match the UID of the authenticated user. This prevents users from
+       * creating or modifying profiles for other users.
+       */
+      allow create, update: if request.auth != null && request.auth.uid == userId;
+
+       /**
+       * ALLOW DELETE:
+       * Deleting user profile documents is disallowed to prevent accidental data loss.
+       * User deletion should be handled by a more robust, backend-driven process.
+       */
+      allow delete: if false;
+    }
+  }
+}

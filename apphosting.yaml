@@ -1,0 +1,22 @@
+# https://firebase.google.com/docs/app-hosting/configure
+
+# The name of the backend that will be created in App Hosting.
+name: studybuddy-ai-backend
+
+# The region to deploy your backend to.
+# See https://firebase.google.com/docs/app-hosting/locations
+region: us-central1
+
+# Settings for the Cloud Run service that powers your backend.
+# See https://firebase.google.com/docs/app-hosting/configure-cloud-run
+runConfig:
+  minInstances: 0
+
+# Environment variables and secrets.
+# See https://firebase.google.com/docs/app-hosting/configure-env
+env:
+  - variable: GEMINI_API_KEY
+    secret: GEMINI_API_KEY
+    availability:
+      - BUILD
+      - RUNTIME
