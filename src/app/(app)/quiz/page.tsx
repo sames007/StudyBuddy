@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState, useEffect, useMemo, useState } from 'react';
+import { useActionState, useEffect, useMemo, useRef, useState } from 'react';
 import { generateQuiz } from '@/app/actions/quiz';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -18,10 +18,16 @@ import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 
 function QuizTaker({ quiz, topic, onRestart, score }: { quiz: QuizQuestion[]; topic: string; onRestart: () => void, score: number }) {
   const { user } = useAuth();
+  const savedQuizRef = useRef<string | null>(null);
   
-  // Effect to save the final score
   useEffect(() => {
     if (!user) return;
+
+    const saveKey = `${user.uid}:${topic}:${score}:${quiz.length}`;
+    if (savedQuizRef.current === saveKey) {
+      return;
+    }
+    savedQuizRef.current = saveKey;
     
     const saveToDb = async () => {
       try {
@@ -37,6 +43,7 @@ function QuizTaker({ quiz, topic, onRestart, score }: { quiz: QuizQuestion[]; to
         await addDoc(studiesCollection, studyData);
       } catch (dbError) {
         console.error("Firestore operation failed:", dbError);
+        savedQuizRef.current = null;
       }
     };
     
@@ -51,7 +58,9 @@ function QuizTaker({ quiz, topic, onRestart, score }: { quiz: QuizQuestion[]; to
       </CardHeader>
       <CardContent className="text-center space-y-4">
         <p className="text-2xl font-bold">Your Score: {score} / {quiz.length}</p>
-        <p className="text-5xl">{score / quiz.length >= 0.8 ? '🎉' : '👍'}</p>
+        <p className="text-muted-foreground">
+          {score / quiz.length >= 0.8 ? 'Great work.' : 'Keep practicing.'}
+        </p>
         <Button onClick={onRestart}>
           <RotateCcw className="mr-2 h-4 w-4" /> Take Another Quiz
         </Button>

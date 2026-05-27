@@ -1,0 +1,137 @@
+import { z } from 'zod';
+
+type GeminiSchema = {
+  type: 'object' | 'array' | 'string' | 'number' | 'integer' | 'boolean';
+  properties?: Record<string, GeminiSchema>;
+  items?: GeminiSchema;
+  enum?: string[];
+  required?: string[];
+};
+
+type GeminiOptions = {
+  responseSchema?: GeminiSchema;
+  responseMimeType?: 'application/json';
+  temperature?: number;
+};
+
+type GeminiResponse = {
+  candidates?: Array<{
+    content?: {
+      parts?: Array<{ text?: string }>;
+    };
+    finishReason?: string;
+  }>;
+  promptFeedback?: {
+    blockReason?: string;
+  };
+};
+
+type GeminiErrorResponse = {
+  error?: {
+    message?: string;
+    status?: string;
+  };
+};
+
+const DEFAULT_MODEL = 'gemini-3.5-flash';
+
+function getGeminiApiKey() {
+  const apiKey = process.env.GEMINI_API_KEY;
+
+  if (!apiKey) {
+    throw new Error('GEMINI_API_KEY is not configured.');
+  }
+
+  return apiKey;
+}
+
+function extractText(response: GeminiResponse) {
+  if (response.promptFeedback?.blockReason) {
+    throw new Error(`Gemini blocked this request: ${response.promptFeedback.blockReason}`);
+  }
+
+  const text = response.candidates
+    ?.flatMap((candidate) => candidate.content?.parts ?? [])
+    .map((part) => part.text ?? '')
+    .join('')
+    .trim();
+
+  if (!text) {
+    throw new Error('Gemini returned an empty response.');
+  }
+
+  return text;
+}
+
+function stripJsonFence(text: string) {
+  return text
+    .replace(/^```(?:json)?\s*/i, '')
+    .replace(/\s*```$/i, '')
+    .trim();
+}
+
+export async function generateGeminiText(prompt: string, options: GeminiOptions = {}) {
+  const model = process.env.GEMINI_MODEL || DEFAULT_MODEL;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
+
+  const response = await fetch(url, {
+    method: 'POST',
+    cache: 'no-store',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-goog-api-key': getGeminiApiKey(),
+    },
+    body: JSON.stringify({
+      contents: [
+        {
+          parts: [{ text: prompt }],
+        },
+      ],
+      generationConfig: {
+        temperature: options.temperature ?? 0.4,
+        ...(options.responseMimeType && options.responseSchema
+          ? {
+              responseFormat: {
+                text: {
+                  mimeType: options.responseMimeType,
+                  schema: options.responseSchema,
+                },
+              },
+            }
+          : {}),
+      },
+    }),
+  });
+
+  if (!response.ok) {
+    const payload = (await response.json().catch(() => null)) as GeminiErrorResponse | null;
+    throw new Error(
+      payload?.error?.message || `Gemini API request failed with status ${response.status}.`
+    );
+  }
+
+  const payload = (await response.json()) as GeminiResponse;
+  return extractText(payload);
+}
+
+export async function generateGeminiJson<T>(
+  prompt: string,
+  validator: z.ZodType<T>,
+  responseSchema: GeminiSchema,
+  options: Omit<GeminiOptions, 'responseMimeType' | 'responseSchema'> = {}
+) {
+  const rawText = await generateGeminiText(prompt, {
+    ...options,
+    responseMimeType: 'application/json',
+    responseSchema,
+  });
+
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(stripJsonFence(rawText));
+  } catch {
+    throw new Error('Gemini returned malformed JSON.');
+  }
+
+  return validator.parse(parsed);
+}

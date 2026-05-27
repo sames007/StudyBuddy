@@ -16,13 +16,19 @@ export default function SummarizerPage() {
   const [fileName, setFileName] = useState('');
   const formRef = useRef<HTMLFormElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const lastSavedSummaryRef = useRef<string | null>(null);
   const { user } = useAuth();
   
-  // Effect to save to Firestore after the AI responds
   useEffect(() => {
     if (isPending || !formState.summary || !formState.notes || !user) {
       return;
     }
+
+    const saveKey = `${user.uid}:${formState.notes}:${formState.summary}`;
+    if (lastSavedSummaryRef.current === saveKey) {
+      return;
+    }
+    lastSavedSummaryRef.current = saveKey;
     
     const saveToDb = async () => {
       try {
@@ -37,7 +43,7 @@ export default function SummarizerPage() {
         await addDoc(studiesCollection, studyData);
       } catch (dbError) {
         console.error("Firestore operation failed:", dbError);
-        // Optionally, show a toast to the user
+        lastSavedSummaryRef.current = null;
       }
     };
 
@@ -48,6 +54,9 @@ export default function SummarizerPage() {
   const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      if (!['text/plain', 'text/markdown', ''].includes(file.type)) {
+        return;
+      }
       setFileName(file.name);
       if(formRef.current) {
         const notesTextArea = formRef.current.elements.namedItem('notes') as HTMLTextAreaElement;

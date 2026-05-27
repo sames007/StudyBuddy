@@ -3,8 +3,8 @@
 ## Core Features:
 
 - AI Tutor Chat: Ask questions and receive explanations on various topics using Google's Gemini models.
-- Note Summarizer: Upload notes or text files to receive concise summaries powered by Google's Gemini models. It acts as a tool, choosing the most appropriate data.
-- Dynamic Flashcards: Automatically generate flashcards for any topic, powered by Google's Gemini models. It acts as a tool, selecting the proper concept.
+- Note Summarizer: Upload notes or text files to receive concise summaries powered by Google's Gemini models.
+- Dynamic Flashcards: Automatically generate flashcards for any topic, powered by Google's Gemini models.
 - Smart Quiz Engine: Create quizzes with multiple-choice and true/false questions using Google's Gemini models.
 - Study History: Save user interactions, including questions, summaries, and generated content to Cloud Firestore.
 - Secure Authentication: Secure user authentication via Firebase Authentication with email/password and Google Sign-In.

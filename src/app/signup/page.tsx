@@ -13,6 +13,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Logo } from '@/components/logo';
+import { getErrorMessage } from '@/lib/errors';
 
 const signupSchema = z.object({
   name: z.string().min(2, { message: 'Name must be at least 2 characters.' }),
@@ -36,11 +37,11 @@ export default function SignupPage() {
         displayName: values.name,
       });
       router.push('/dashboard');
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         variant: 'destructive',
         title: 'Sign Up Failed',
-        description: error.message,
+        description: getErrorMessage(error, 'Unable to create your account.'),
       });
     }
   }
@@ -50,11 +51,11 @@ export default function SignupPage() {
     try {
       await signInWithPopup(auth, provider);
       router.push('/dashboard');
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         variant: 'destructive',
         title: 'Google Sign-Up Failed',
-        description: error.message,
+        description: getErrorMessage(error, 'Unable to sign up with Google.'),
       });
     }
   }
@@ -105,7 +106,7 @@ export default function SignupPage() {
                   <FormItem>
                     <FormLabel>Password</FormLabel>
                     <FormControl>
-                      <Input type="password" placeholder="••••••••" {...field} />
+                      <Input type="password" placeholder="********" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

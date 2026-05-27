@@ -32,6 +32,8 @@ import {
   orderBy,
   onSnapshot,
   Timestamp,
+  doc,
+  deleteDoc,
 } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -57,11 +59,11 @@ import {
   DialogClose,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { deleteHistoryItem } from '@/app/actions/history';
 import { useToast } from '@/hooks/use-toast';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { getErrorCode } from '@/lib/errors';
 
 type HistoryItem = {
   id: string;
@@ -97,6 +99,7 @@ export default function HistoryPage() {
   
   const [isAlertOpen, setIsAlertOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   
   const [selectedItem, setSelectedItem] = useState<HistoryItem | null>(null);
   const [isViewOpen, setIsViewOpen] = useState(false);
@@ -126,25 +129,31 @@ export default function HistoryPage() {
       (querySnapshot) => {
         const items = querySnapshot.docs.map((doc) => {
           const data = doc.data();
+          const createdAt =
+            data.createdAt instanceof Timestamp ? data.createdAt.toDate() : new Date();
+
           return {
             id: doc.id,
             ...data,
-            createdAt: (data.createdAt as Timestamp).toDate(),
+            createdAt,
           } as HistoryItem;
         });
         setHistory(items);
         setLoading(false);
         setError(null);
       },
-      (err: any) => {
+      (err: unknown) => {
+        const errorCode = getErrorCode(err);
+        const errorMessage = err instanceof Error ? err.message : '';
+
         console.error('Firestore error:', err);
         if (
-          (err.code === 'permission-denied' || err.code === 'unauthenticated')
+          (errorCode === 'permission-denied' || errorCode === 'unauthenticated')
         ) {
           setError("You don't have permission to view this history. This is likely a security rule misconfiguration or an authentication issue.")
         } else if (
-          err.code === 'failed-precondition' &&
-          err.message.includes('requires an index')
+          errorCode === 'failed-precondition' &&
+          errorMessage.includes('requires an index')
         ) {
           setError(
             'Your study history database is being prepared. Please check back in a few minutes. You may need to create a composite index in your Firestore console.'
@@ -171,29 +180,38 @@ export default function HistoryPage() {
 
   const handleConfirmDelete = async () => {
     if (!itemToDelete) return;
-    const result = await deleteHistoryItem(itemToDelete);
-    if (result.error) {
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: result.error,
-      });
-    } else {
+
+    setIsDeleting(true);
+    try {
+      await deleteDoc(doc(db, 'studies', itemToDelete));
       toast({
         title: 'Success',
         description: 'History item deleted.',
       });
+    } catch (error: unknown) {
+      const errorCode = getErrorCode(error);
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description:
+          errorCode === 'permission-denied'
+            ? 'You do not have permission to delete this item.'
+            : 'Failed to delete history item. Please try again.',
+      });
+    } finally {
+      setIsDeleting(false);
+      setIsAlertOpen(false);
+      setItemToDelete(null);
     }
-    setIsAlertOpen(false);
-    setItemToDelete(null);
   };
   
   const handleContinueTutor = () => {
     if (selectedItem?.type !== 'tutor') return;
-    // Pass the conversation data through query params
-    const messages = JSON.stringify(selectedItem.messages);
-    const conversationId = selectedItem.id;
-    router.push(`/tutor?conversationId=${conversationId}&messages=${encodeURIComponent(messages)}`);
+    sessionStorage.setItem(
+      `studybuddy:tutor:${selectedItem.id}`,
+      JSON.stringify(selectedItem.messages)
+    );
+    router.push(`/tutor?conversationId=${selectedItem.id}`);
   };
 
   const filteredHistory = (type: string) =>
@@ -216,7 +234,7 @@ export default function HistoryPage() {
         );
         title = (
           <p className="font-medium truncate" title={item.notes}>
-            Summary of notes starting with: "{item.notes.substring(0, 50)}..."
+            Summary of notes starting with: {item.notes.substring(0, 50)}...
           </p>
         );
         break;
@@ -382,8 +400,8 @@ export default function HistoryPage() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirmDelete}>
-              Delete
+            <AlertDialogAction onClick={handleConfirmDelete} disabled={isDeleting}>
+              {isDeleting ? 'Deleting...' : 'Delete'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

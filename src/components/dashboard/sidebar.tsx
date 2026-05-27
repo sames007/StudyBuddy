@@ -4,7 +4,6 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Logo } from '@/components/logo';
 import { navLinks } from '@/lib/nav-links';
-import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 
 export function Sidebar() {

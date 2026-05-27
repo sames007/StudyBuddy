@@ -1,13 +1,11 @@
-'use server';
-
 /**
  * @fileOverview A flow to generate flashcards for a given topic.
  *
  * - generateFlashcards - A function that handles the flashcard generation process.
  */
 
-import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import { generateGeminiJson } from '@/ai/gemini';
+import { z } from 'zod';
 
 const GenerateFlashcardsInputSchema = z.object({
   topic: z.string().describe('The topic for which to generate flashcards.'),
@@ -28,28 +26,28 @@ const GenerateFlashcardsOutputSchema = z.object({
 type GenerateFlashcardsOutput = z.infer<typeof GenerateFlashcardsOutputSchema>;
 
 export async function generateFlashcards(input: GenerateFlashcardsInput): Promise<GenerateFlashcardsOutput> {
-  return generateFlashcardsFlow(input);
+  const parsedInput = GenerateFlashcardsInputSchema.parse(input);
+  const prompt = `You are an expert educator.
+Generate exactly ${parsedInput.numberOfCards} useful study flashcards for this topic: ${parsedInput.topic}.
+Make the front side a clear prompt or question and the back side a concise answer.
+
+Return a JSON object with one field: flashcards.`;
+
+  return generateGeminiJson(prompt, GenerateFlashcardsOutputSchema, {
+    type: 'object',
+    properties: {
+      flashcards: {
+        type: 'array',
+        items: {
+          type: 'object',
+          properties: {
+            front: { type: 'string' },
+            back: { type: 'string' },
+          },
+          required: ['front', 'back'],
+        },
+      },
+    },
+    required: ['flashcards'],
+  });
 }
-
-const flashcardPrompt = ai.definePrompt({
-  name: 'flashcardPrompt',
-  input: {schema: GenerateFlashcardsInputSchema},
-  output: {schema: GenerateFlashcardsOutputSchema},
-  model: 'googleai/gemini-2.0-flash',
-  prompt: `You are an expert educator. Generate {{{numberOfCards}}} flashcards for the topic of {{{topic}}}. Each flashcard should have a front and back.\n\nOutput in JSON format:\n`,
-});
-
-const generateFlashcardsFlow = ai.defineFlow(
-  {
-    name: 'generateFlashcardsFlow',
-    inputSchema: GenerateFlashcardsInputSchema,
-    outputSchema: GenerateFlashcardsOutputSchema,
-  },
-  async input => {
-    const {output} = await flashcardPrompt(input);
-    return {
-      ...output,
-      progress: 'Flashcards have been generated for the given topic.',
-    } as GenerateFlashcardsOutput & {progress: string};
-  }
-);

@@ -5,7 +5,7 @@ import { z } from 'zod';
 import type { Flashcard } from '@/types';
 
 const schema = z.object({
-  topic: z.string().min(2, 'Topic must be at least 2 characters.'),
+  topic: z.string().trim().min(2, 'Topic must be at least 2 characters.').max(120),
   numberOfCards: z.coerce.number().min(1).max(20),
 });
 
@@ -32,8 +32,8 @@ export async function generateFlashcards(prevState: State, formData: FormData): 
   try {
     const response = await generateFlashcardsFlow({ topic, numberOfCards });
     return { flashcards: response.flashcards, topic };
-  } catch (e: any) {
+  } catch (e: unknown) {
     console.error('AI Flow error:', e);
-    return { error: e.message || 'Failed to generate flashcards. The AI service may be temporarily unavailable.' };
+    return { error: e instanceof Error ? e.message : 'Failed to generate flashcards. The AI service may be temporarily unavailable.' };
   }
 }

@@ -3,7 +3,7 @@
 import { z } from 'zod';
 
 const searchSchema = z.object({
-  query: z.string().min(2, 'Search query must be at least 2 characters.'),
+  query: z.string().trim().min(2, 'Search query must be at least 2 characters.').max(120),
 });
 
 interface Book {
@@ -24,7 +24,7 @@ interface SearchResult {
 }
 
 export async function searchBooks(
-  prevState: any,
+  _prevState: SearchResult,
   formData: FormData
 ): Promise<SearchResult> {
   const validatedFields = searchSchema.safeParse({
@@ -43,23 +43,23 @@ export async function searchBooks(
   const { query } = validatedFields.data;
   const url = `https://openlibrary.org/search.json?q=${encodeURIComponent(
     query
-  )}&fields=key,title,author_name,first_publish_year,edition_count,cover_i`;
+  )}&fields=key,title,author_name,first_publish_year,edition_count,cover_i&limit=12`;
 
   try {
-    const response = await fetch(url);
+    const response = await fetch(url, { cache: 'no-store' });
     if (!response.ok) {
       throw new Error(`API request failed with status ${response.status}`);
     }
     const data: SearchResult = await response.json();
     return {...data, query};
-  } catch (e: any) {
+  } catch (e: unknown) {
     console.error('Open Library API error:', e);
     return {
       num_found: 0,
       start: 0,
       docs: [],
       query,
-      error: e.message || 'Failed to search for books. Please try again.',
+      error: e instanceof Error ? e.message : 'Failed to search for books. Please try again.',
     };
   }
 }

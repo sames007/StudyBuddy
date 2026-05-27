@@ -3,6 +3,46 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(data) {
+      return signedIn() && data.userId == request.auth.uid;
+    }
+
+    function isValidStudy(data) {
+      return isOwner(data)
+        && data.createdAt is timestamp
+        && data.type in ['tutor', 'summaries', 'flashcards', 'quizzes']
+        && (
+          (
+            data.type == 'tutor'
+            && data.keys().hasOnly(['userId', 'type', 'topic', 'messages', 'createdAt'])
+            && data.topic is string
+            && data.messages is list
+          )
+          || (
+            data.type == 'summaries'
+            && data.keys().hasOnly(['userId', 'type', 'notes', 'summary', 'createdAt'])
+            && data.notes is string
+            && data.summary is string
+          )
+          || (
+            data.type == 'flashcards'
+            && data.keys().hasOnly(['userId', 'type', 'topic', 'flashcards', 'createdAt'])
+            && data.topic is string
+            && data.flashcards is list
+          )
+          || (
+            data.type == 'quizzes'
+            && data.keys().hasOnly(['userId', 'type', 'topic', 'quiz', 'score', 'createdAt'])
+            && data.topic is string
+            && data.quiz is list
+            && (!('score' in data) || data.score is string)
+          )
+        );
+    }
 
     // The 'studies' collection holds all user-generated content, such as
     // tutor conversations, notes summaries, flashcards, and quizzes.
@@ -16,7 +56,7 @@ service cloud.firestore {
        * constraint on the client-side (e.g., where("userId", "==", user.uid))
        * to ensure users can only query for their own documents.
        */
-      allow read: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow read: if isOwner(resource.data);
 
       /**
        * ALLOW CREATE:
@@ -24,7 +64,7 @@ service cloud.firestore {
        * setting the 'userId' field to their own user ID. This ensures that
        * all new documents are correctly owned from the moment of creation.
        */
-      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow create: if isValidStudy(request.resource.data);
 
       /**
        * ALLOW UPDATE, DELETE:
@@ -33,17 +73,18 @@ service cloud.firestore {
        * that is being modified. This prevents users from altering or deleting
        * each other's data.
        */
-      allow update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow update: if isOwner(resource.data) && isValidStudy(request.resource.data);
+      allow delete: if isOwner(resource.data);
     }
 
     // The 'users' collection stores public-facing profile information for each user.
     match /users/{userId} {
        /**
        * ALLOW READ:
-       * Anyone can read a user's profile information. This is useful for public-facing
-       * features, but contains no sensitive data.
+       * A user can read their own profile document. The app currently stores profile
+       * data in Firebase Auth, so this collection is reserved for future profile fields.
        */
-      allow read: if true;
+      allow read: if signedIn() && request.auth.uid == userId;
 
       /**
        * ALLOW CREATE, UPDATE:
@@ -51,7 +92,13 @@ service cloud.firestore {
        * must match the UID of the authenticated user. This prevents users from
        * creating or modifying profiles for other users.
        */
-      allow create, update: if request.auth != null && request.auth.uid == userId;
+      allow create, update: if signedIn()
+        && request.auth.uid == userId
+        && request.resource.data.keys().hasOnly(['displayName', 'email', 'photoURL', 'updatedAt'])
+        && (!('displayName' in request.resource.data) || request.resource.data.displayName is string)
+        && (!('email' in request.resource.data) || request.resource.data.email is string)
+        && (!('photoURL' in request.resource.data) || request.resource.data.photoURL is string)
+        && (!('updatedAt' in request.resource.data) || request.resource.data.updatedAt is timestamp);
 
        /**
        * ALLOW DELETE:

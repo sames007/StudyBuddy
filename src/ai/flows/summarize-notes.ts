@@ -1,13 +1,11 @@
-'use server';
-
 /**
  * @fileOverview A note summarization AI agent.
  *
  * - summarizeNotes - A function that handles the note summarization process.
  */
 
-import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import { generateGeminiJson } from '@/ai/gemini';
+import { z } from 'zod';
 
 const SummarizeNotesInputSchema = z.object({
   notes: z.string().describe('The notes to summarize.'),
@@ -20,30 +18,20 @@ const SummarizeNotesOutputSchema = z.object({
 type SummarizeNotesOutput = z.infer<typeof SummarizeNotesOutputSchema>;
 
 export async function summarizeNotes(input: SummarizeNotesInput): Promise<SummarizeNotesOutput> {
-  return summarizeNotesFlow(input);
+  const parsedInput = SummarizeNotesInputSchema.parse(input);
+  const prompt = `You are an expert note summarizer.
+Create a concise, accurate summary of the key ideas in these notes. Preserve important terms, dates, formulas, and cause/effect relationships.
+
+Notes:
+${parsedInput.notes}
+
+Return a JSON object with one field: summary.`;
+
+  return generateGeminiJson(prompt, SummarizeNotesOutputSchema, {
+    type: 'object',
+    properties: {
+      summary: { type: 'string' },
+    },
+    required: ['summary'],
+  });
 }
-
-const prompt = ai.definePrompt({
-  name: 'summarizeNotesPrompt',
-  input: {schema: SummarizeNotesInputSchema},
-  output: {schema: SummarizeNotesOutputSchema},
-  model: 'googleai/gemini-2.0-flash',
-  prompt: `You are an expert note summarizer.  Your goal is to create a concise summary of the key points in the notes provided.
-
-Notes: {{{notes}}}`,
-});
-
-const summarizeNotesFlow = ai.defineFlow(
-  {
-    name: 'summarizeNotesFlow',
-    inputSchema: SummarizeNotesInputSchema,
-    outputSchema: SummarizeNotesOutputSchema,
-  },
-  async input => {
-    const {output} = await prompt(input);
-    return {
-      ...output,
-      progress: 'Notes have been summarized by the AI summarizer.',
-    } as SummarizeNotesOutput & {progress: string};
-  }
-);

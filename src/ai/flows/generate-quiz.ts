@@ -1,10 +1,9 @@
-'use server';
 /**
  * @fileOverview A flow to generate a quiz for a given topic.
  */
 
-import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import { generateGeminiJson } from '@/ai/gemini';
+import { z } from 'zod';
 
 const GenerateQuizInputSchema = z.object({
   topic: z.string().describe('The topic for which to generate the quiz.'),
@@ -26,33 +25,40 @@ const GenerateQuizOutputSchema = z.object({
 type GenerateQuizOutput = z.infer<typeof GenerateQuizOutputSchema>;
 
 export async function generateQuiz(input: GenerateQuizInput): Promise<GenerateQuizOutput> {
-  return generateQuizFlow(input);
-}
-
-const quizPrompt = ai.definePrompt({
-  name: 'quizPrompt',
-  input: {schema: GenerateQuizInputSchema},
-  output: {schema: GenerateQuizOutputSchema},
-  model: 'googleai/gemini-2.0-flash',
-  prompt: `You are an expert educator. Generate a quiz with {{{numberOfQuestions}}} questions for the topic of {{{topic}}}. The quiz can contain a mix of multiple-choice and true/false questions.
-For multiple-choice questions, provide 4 options.
+  const parsedInput = GenerateQuizInputSchema.parse(input);
+  const prompt = `You are an expert educator.
+Generate exactly ${parsedInput.numberOfQuestions} quiz questions for this topic: ${parsedInput.topic}.
+Use a mix of multiple-choice and true/false questions when appropriate.
+For multiple-choice questions, provide exactly 4 options and make the answer exactly match one option.
+For true/false questions, set answer to exactly "True" or "False" and omit options.
 For every question, provide a brief explanation for the correct answer.
 
-Output in the specified JSON format.
-`,
-});
+Return a JSON object with one field: quiz.`;
 
-const generateQuizFlow = ai.defineFlow(
-  {
-    name: 'generateQuizFlow',
-    inputSchema: GenerateQuizInputSchema,
-    outputSchema: GenerateQuizOutputSchema,
-  },
-  async input => {
-    const {output} = await quizPrompt(input);
-    return {
-      ...output,
-      progress: 'Quiz has been generated for the given topic.',
-    } as GenerateQuizOutput & {progress: string};
-  }
-);
+  return generateGeminiJson(prompt, GenerateQuizOutputSchema, {
+    type: 'object',
+    properties: {
+      quiz: {
+        type: 'array',
+        items: {
+          type: 'object',
+          properties: {
+            question: { type: 'string' },
+            type: {
+              type: 'string',
+              enum: ['multiple-choice', 'true-false'],
+            },
+            options: {
+              type: 'array',
+              items: { type: 'string' },
+            },
+            answer: { type: 'string' },
+            explanation: { type: 'string' },
+          },
+          required: ['question', 'type', 'answer', 'explanation'],
+        },
+      },
+    },
+    required: ['quiz'],
+  });
+}

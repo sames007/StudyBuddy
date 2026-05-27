@@ -1,7 +1,7 @@
 # https://firebase.google.com/docs/app-hosting/configure
 
 # The name of the backend that will be created in App Hosting.
-name: studybuddy-ai-backend
+name: studybuddy-backend
 
 # The region to deploy your backend to.
 # See https://firebase.google.com/docs/app-hosting/locations

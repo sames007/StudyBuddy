@@ -1,12 +1,11 @@
-'use server';
 /**
  * @fileOverview An AI tutor that answers questions on any topic.
  *
  * - answerQuestion - A function that answers a question using AI.
  */
 
-import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import { generateGeminiJson } from '@/ai/gemini';
+import { z } from 'zod';
 
 const AnswerQuestionInputSchema = z.object({
   question: z.string().describe('The question to be answered.'),
@@ -20,32 +19,23 @@ const AnswerQuestionOutputSchema = z.object({
 type AnswerQuestionOutput = z.infer<typeof AnswerQuestionOutputSchema>;
 
 export async function answerQuestion(input: AnswerQuestionInput): Promise<AnswerQuestionOutput> {
-  return answerQuestionFlow(input);
-}
-
-const prompt = ai.definePrompt({
-  name: 'answerQuestionPrompt',
-  input: {schema: AnswerQuestionInputSchema},
-  output: {schema: AnswerQuestionOutputSchema},
-  model: 'googleai/gemini-2.0-flash',
-  prompt: `You are an expert AI Tutor. Your role is to answer the user's question clearly and concisely.
+  const parsedInput = AnswerQuestionInputSchema.parse(input);
+  const prompt = `You are an expert AI tutor. Answer clearly, accurately, and concisely.
+If the student asks for help with homework, explain the reasoning instead of only giving the final answer.
 
 This is the conversation history:
-{{{historyAsString}}}
+${parsedInput.historyAsString || 'No previous messages.'}
 
-The user's new question is: {{{question}}}
+The student's new question is:
+${parsedInput.question}
 
-Provide a direct answer to the user's question.`,
-});
+Return a JSON object with one field: answer.`;
 
-const answerQuestionFlow = ai.defineFlow(
-  {
-    name: 'answerQuestionFlow',
-    inputSchema: AnswerQuestionInputSchema,
-    outputSchema: AnswerQuestionOutputSchema,
-  },
-  async input => {
-    const {output} = await prompt(input);
-    return output!;
-  }
-);
+  return generateGeminiJson(prompt, AnswerQuestionOutputSchema, {
+    type: 'object',
+    properties: {
+      answer: { type: 'string' },
+    },
+    required: ['answer'],
+  });
+}

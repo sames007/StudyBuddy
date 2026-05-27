@@ -5,7 +5,7 @@ import { z } from 'zod';
 import type { QuizQuestion } from '@/types';
 
 const schema = z.object({
-  topic: z.string().min(2, 'Topic must be at least 2 characters.'),
+  topic: z.string().trim().min(2, 'Topic must be at least 2 characters.').max(120),
   numberOfQuestions: z.coerce.number().min(1).max(10),
 });
 
@@ -35,8 +35,8 @@ export async function generateQuiz(prevState: State, formData: FormData): Promis
       quiz: response.quiz,
       topic: topic,
     };
-  } catch (e: any) {
+  } catch (e: unknown) {
       console.error('AI Flow error:', e);
-      return { error: e.message || 'Failed to generate quiz. The AI service may be temporarily unavailable.' };
+      return { error: e instanceof Error ? e.message : 'Failed to generate quiz. The AI service may be temporarily unavailable.' };
   }
 }

@@ -13,6 +13,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { Logo } from '@/components/logo';
 import { ArrowLeft } from 'lucide-react';
+import { getErrorMessage } from '@/lib/errors';
 
 const forgotPasswordSchema = z.object({
   email: z.string().email({ message: 'Invalid email address.' }),
@@ -34,11 +35,11 @@ export default function ForgotPasswordPage() {
         description: 'A password reset link has been sent to your email address.',
       });
       form.reset();
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         variant: 'destructive',
         title: 'Error',
-        description: error.message,
+        description: getErrorMessage(error, 'Unable to send the password reset email.'),
       });
     }
   }

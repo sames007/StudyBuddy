@@ -110,7 +110,7 @@ export default function BookSearchPage() {
       
       {!isPending && state.docs && state.docs.length === 0 && state.query && (
          <div className="flex flex-col items-center justify-center rounded-lg border bg-card p-8 min-h-64">
-          <p className="text-muted-foreground">No results found for "{state.query}".</p>
+          <p className="text-muted-foreground">No results found for &quot;{state.query}&quot;.</p>
         </div>
       )}
     </div>

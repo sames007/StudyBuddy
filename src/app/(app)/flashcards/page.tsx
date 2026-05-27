@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState, useEffect, useState } from 'react';
+import { useActionState, useEffect, useRef, useState } from 'react';
 import { generateFlashcards } from '@/app/actions/flashcards';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -17,12 +17,19 @@ import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 export default function FlashcardsPage() {
   const [formState, formAction, isPending] = useActionState(generateFlashcards, {});
   const [numCards, setNumCards] = useState(5);
+  const lastSavedFlashcardsRef = useRef<string | null>(null);
   const { user } = useAuth();
 
   useEffect(() => {
     if (isPending || !formState.flashcards || formState.flashcards.length === 0 || !user) {
       return;
     }
+
+    const saveKey = `${user.uid}:${formState.topic}:${JSON.stringify(formState.flashcards)}`;
+    if (lastSavedFlashcardsRef.current === saveKey) {
+      return;
+    }
+    lastSavedFlashcardsRef.current = saveKey;
 
     const saveToDb = async () => {
       try {
@@ -37,6 +44,7 @@ export default function FlashcardsPage() {
         await addDoc(studiesCollection, studyData);
       } catch (dbError) {
         console.error("Firestore operation failed:", dbError);
+        lastSavedFlashcardsRef.current = null;
       }
     };
 

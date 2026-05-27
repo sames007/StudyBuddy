@@ -8,13 +8,17 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { updateProfile } from 'firebase/auth';
-import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { useState, useRef, ChangeEvent } from 'react';
+import { useEffect, useState, useRef, ChangeEvent } from 'react';
 import { Loader2 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { storage } from '@/lib/firebase';
+
+const MAX_AVATAR_SIZE_BYTES = 2 * 1024 * 1024;
+const ALLOWED_AVATAR_TYPES = ['image/png', 'image/jpeg', 'image/gif', 'image/webp'];
 
 const profileSchema = z.object({
   displayName: z.string().min(2, 'Name must be at least 2 characters.'),
@@ -25,6 +29,7 @@ export default function ProfilePage() {
   const { user, loading } = useAuth();
   const { toast } = useToast();
   const [isUploading, setIsUploading] = useState(false);
+  const [photoURL, setPhotoURL] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const form = useForm<z.infer<typeof profileSchema>>({
@@ -34,6 +39,10 @@ export default function ProfilePage() {
       email: user?.email ?? '',
     },
   });
+
+  useEffect(() => {
+    setPhotoURL(user?.photoURL ?? null);
+  }, [user?.photoURL]);
 
   const getInitials = (name: string | null | undefined) => {
     if (!name) return 'U';
@@ -52,21 +61,46 @@ export default function ProfilePage() {
     const file = e.target.files?.[0];
     if (!file || !user) return;
 
+    if (!ALLOWED_AVATAR_TYPES.includes(file.type)) {
+      toast({
+        variant: 'destructive',
+        title: 'Unsupported File',
+        description: 'Please upload a PNG, JPG, GIF, or WebP image.',
+      });
+      return;
+    }
+
+    if (file.size > MAX_AVATAR_SIZE_BYTES) {
+      toast({
+        variant: 'destructive',
+        title: 'File Too Large',
+        description: 'Please choose an image smaller than 2 MB.',
+      });
+      return;
+    }
+
     setIsUploading(true);
-    const storage = getStorage();
-    const storageRef = ref(storage, `avatars/${user.uid}/${file.name}`);
+    const extension = file.name.split('.').pop()?.toLowerCase() || 'img';
+    const storageRef = ref(storage, `avatars/${user.uid}/${crypto.randomUUID()}.${extension}`);
 
     try {
-      const snapshot = await uploadBytes(storageRef, file);
-      const photoURL = await getDownloadURL(snapshot.ref);
-      await updateProfile(user, { photoURL });
+      const snapshot = await uploadBytes(storageRef, file, {
+        contentType: file.type,
+        customMetadata: { owner: user.uid },
+      });
+      const nextPhotoURL = await getDownloadURL(snapshot.ref);
+      await updateProfile(user, { photoURL: nextPhotoURL });
+      setPhotoURL(nextPhotoURL);
       toast({ title: 'Success', description: 'Profile picture updated!' });
-      // Force a reload of the user to get the new photoURL
-      window.location.reload();
-    } catch (error: any) {
-      toast({ variant: 'destructive', title: 'Upload Failed', description: error.message });
+    } catch (error: unknown) {
+      toast({
+        variant: 'destructive',
+        title: 'Upload Failed',
+        description: error instanceof Error ? error.message : 'Unable to upload your profile picture.',
+      });
     } finally {
       setIsUploading(false);
+      e.target.value = '';
     }
   };
 
@@ -77,8 +111,12 @@ export default function ProfilePage() {
       try {
         await updateProfile(user, { displayName: values.displayName });
         toast({ title: 'Success', description: 'Profile updated successfully!' });
-      } catch (error: any) {
-        toast({ variant: 'destructive', title: 'Update Failed', description: error.message });
+      } catch (error: unknown) {
+        toast({
+          variant: 'destructive',
+          title: 'Update Failed',
+          description: error instanceof Error ? error.message : 'Unable to update your profile.',
+        });
       }
     } else {
         toast({ title: 'No Changes', description: 'You have not made any changes to your profile.' });
@@ -123,7 +161,7 @@ export default function ProfilePage() {
         <div className="flex items-center space-x-4">
           <div className="relative">
             <Avatar className="h-24 w-24 cursor-pointer" onClick={handleAvatarClick}>
-              <AvatarImage src={user?.photoURL ?? ''} alt={user?.displayName ?? ''} />
+              <AvatarImage src={photoURL ?? ''} alt={user?.displayName ?? ''} />
               <AvatarFallback className="text-3xl">
                 {getInitials(user?.displayName)}
               </AvatarFallback>
@@ -141,7 +179,7 @@ export default function ProfilePage() {
             type="file"
             ref={fileInputRef}
             onChange={handleFileChange}
-            accept="image/png, image/jpeg, image/gif"
+            accept="image/png, image/jpeg, image/gif, image/webp"
             className="hidden"
           />
         </div>

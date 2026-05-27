@@ -1,10 +1,6 @@
 import type { Metadata } from 'next';
 import { Providers } from '@/components/providers';
 import './globals.css';
-import { cn } from '@/lib/utils';
-import { Inter } from 'next/font/google';
-
-const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 
 export const metadata: Metadata = {
   title: 'StudyBuddy AI: Your AI-Powered Learning Partner',
@@ -18,7 +14,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={cn("font-sans antialiased", inter.variable)}>
+      <body className="font-sans antialiased">
         <Providers>{children}</Providers>
       </body>
     </html>

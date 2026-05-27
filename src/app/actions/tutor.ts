@@ -5,8 +5,8 @@ import { z } from 'zod';
 import type { TutorMessage } from '@/types';
 
 const schema = z.object({
-  question: z.string().min(1, 'Question cannot be empty.'),
-  messages: z.string(), // JSON string of TutorMessage[]
+  question: z.string().trim().min(1, 'Question cannot be empty.').max(2000),
+  messages: z.string().max(60000), // JSON string of TutorMessage[]
   conversationId: z.string().optional(),
 });
 
@@ -36,7 +36,7 @@ export async function askTutor(prevState: State, formData: FormData): Promise<St
   let history: TutorMessage[] = [];
   try {
     history = JSON.parse(validatedFields.data.messages);
-  } catch (e) {
+  } catch {
     return { ...prevState, error: 'Invalid message history format.' };
   }
   
@@ -56,11 +56,11 @@ export async function askTutor(prevState: State, formData: FormData): Promise<St
       conversationId: conversationId || prevState.conversationId,
     };
 
-  } catch (aiError: any) {
+  } catch (aiError: unknown) {
     console.error('askTutor AI action error:', aiError);
     return { 
       messages: currentMessages,
-      error: aiError.message || 'An unknown error occurred with the AI Tutor. The service may be temporarily unavailable.',
+      error: aiError instanceof Error ? aiError.message : 'An unknown error occurred with the AI Tutor. The service may be temporarily unavailable.',
       conversationId: conversationId || prevState.conversationId,
     };
   }

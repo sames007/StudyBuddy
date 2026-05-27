@@ -15,6 +15,7 @@ import { Input } from '@/components/ui/input';
 import { Logo } from '@/components/logo';
 import { useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
+import { getErrorCode, getErrorMessage } from '@/lib/errors';
 
 const loginSchema = z.object({
   email: z.string().email({ message: 'Invalid email address.' }),
@@ -35,12 +36,12 @@ export default function LoginPage() {
     try {
       await signInWithEmailAndPassword(auth, values.email, values.password);
       router.push('/dashboard');
-    } catch (error: any) {
+    } catch (error: unknown) {
       let description = 'An unexpected error occurred.';
-      if (error.code === 'auth/invalid-credential') {
+      if (getErrorCode(error) === 'auth/invalid-credential') {
         description = 'The email or password you entered is incorrect. Please try again.';
       } else {
-        description = error.message;
+        description = getErrorMessage(error, description);
       }
       toast({
         variant: 'destructive',
@@ -55,11 +56,11 @@ export default function LoginPage() {
     try {
       await signInWithPopup(auth, provider);
       router.push('/dashboard');
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         variant: 'destructive',
         title: 'Google Sign-In Failed',
-        description: error.message,
+        description: getErrorMessage(error, 'Unable to sign in with Google.'),
       });
     }
   }
@@ -106,7 +107,7 @@ export default function LoginPage() {
                     </div>
                     <div className="relative">
                       <FormControl>
-                        <Input type={showPassword ? 'text' : 'password'} placeholder="••••••••" {...field} />
+                        <Input type={showPassword ? 'text' : 'password'} placeholder="********" {...field} />
                       </FormControl>
                       <Button
                         type="button"
@@ -139,7 +140,7 @@ export default function LoginPage() {
             Sign In with Google
           </Button>
           <p className="mt-6 text-center text-sm text-muted-foreground">
-            Don't have an account?{' '}
+            Don&apos;t have an account?{' '}
             <Link href="/signup" className="font-medium text-primary hover:underline">
               Sign up
             </Link>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState, useEffect, useRef, Suspense } from 'react';
+import { useActionState, useEffect, useRef, Suspense, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { askTutor } from '@/app/actions/tutor';
 import { Button } from '@/components/ui/button';
@@ -20,7 +20,6 @@ import {
   updateDoc,
   arrayUnion,
 } from 'firebase/firestore';
-import { useState } from 'react';
 
 type TutorState = {
   messages: Message[];
@@ -29,44 +28,26 @@ type TutorState = {
   answer?: string;
 };
 
-function getInitialStateFromUrl(): TutorState {
-  const searchParams = new URLSearchParams(window.location.search);
-  const messagesParam = searchParams.get('messages');
-  const conversationIdParam = searchParams.get('conversationId');
-
-  if (messagesParam) {
-    try {
-      const messages = JSON.parse(decodeURIComponent(messagesParam));
-      return {
-        messages: messages,
-        conversationId: conversationIdParam || null,
-      };
-    } catch (e) {
-      console.error("Failed to parse messages from URL", e);
-    }
-  }
-
-  return { messages: [], conversationId: null };
-}
-
-
 function TutorPageComponent() {
   const { user, loading: authLoading } = useAuth();
   
   const searchParams = useSearchParams();
-  const messagesParam = searchParams.get('messages');
   const conversationIdParam = searchParams.get('conversationId');
 
-  const [initialState] = useState(() => {
-    if (messagesParam) {
+  const [initialState] = useState<TutorState>(() => {
+    if (conversationIdParam) {
       try {
-        const messages = JSON.parse(decodeURIComponent(messagesParam));
+        const storedMessages =
+          typeof window !== 'undefined'
+            ? sessionStorage.getItem(`studybuddy:tutor:${conversationIdParam}`)
+            : null;
+        const messages = storedMessages ? JSON.parse(storedMessages) : [];
         return {
           messages,
           conversationId: conversationIdParam || null,
         };
-      } catch (e) {
-        console.error("Failed to parse messages from URL", e);
+      } catch {
+        console.error('Failed to restore tutor conversation from session storage.');
       }
     }
     return { messages: [], conversationId: null };
@@ -75,7 +56,8 @@ function TutorPageComponent() {
   const [state, formAction, isPending] = useActionState(askTutor, initialState);
   const formRef = useRef<HTMLFormElement>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
-  const [conversationId, setConversationId] = useState<string | null>(initialState.conversationId);
+  const lastSavedResponseRef = useRef<string | null>(null);
+  const [conversationId, setConversationId] = useState<string | null>(initialState.conversationId ?? null);
 
 
   useEffect(() => {
@@ -100,16 +82,20 @@ function TutorPageComponent() {
       return;
     }
 
+    const saveKey = `${conversationId || 'new'}:${state.messages.length}:${state.answer}`;
+    if (lastSavedResponseRef.current === saveKey) {
+      return;
+    }
+    lastSavedResponseRef.current = saveKey;
+
     const saveToDb = async () => {
       try {
         if (conversationId) {
-          // Update existing conversation
           const docRef = doc(db, 'studies', conversationId);
           await updateDoc(docRef, {
             messages: arrayUnion(userMessage, assistantMessage),
           });
         } else {
-          // Create new conversation
           const studiesCollection = collection(db, 'studies');
           const studyData = {
             userId: user.uid,
@@ -119,10 +105,11 @@ function TutorPageComponent() {
             createdAt: serverTimestamp(),
           };
           const docRef = await addDoc(studiesCollection, studyData);
-          setConversationId(docRef.id); // Save the new ID for subsequent updates
+          setConversationId(docRef.id);
         }
       } catch (dbError) {
         console.error("Firestore operation failed:", dbError);
+        lastSavedResponseRef.current = null;
       }
     };
 
