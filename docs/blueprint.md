@@ -1,4 +1,4 @@
-# **App Name**: StudyPilot AI
+# **App Name**: StudyBuddy
 
 ## Core Features:
 

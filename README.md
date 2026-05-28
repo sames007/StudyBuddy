@@ -1,6 +1,6 @@
-# StudyPilot AI
+# StudyBuddy
 
-StudyPilot AI is a Next.js and Firebase study assistant with AI tutoring, note summaries, flashcards, quizzes, book search, authentication, profile pictures, and saved study history.
+StudyBuddy is a Next.js and Firebase study assistant with AI tutoring, note summaries, flashcards, quizzes, book search, authentication, profile pictures, and saved study history.
 
 ## Features
 

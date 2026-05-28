@@ -1,1 +1,1 @@
-export const APP_NAME = 'StudyPilot AI';
+export const APP_NAME = 'StudyBuddy';
