@@ -34,7 +34,7 @@ type GeminiErrorResponse = {
   };
 };
 
-const DEFAULT_MODEL = 'gemini-2.5-flash';
+const DEFAULT_MODEL = 'gemini-2.5-flash-lite';
 
 function getGeminiApiKey() {
   const apiKey = process.env.GEMINI_API_KEY;
@@ -104,15 +104,28 @@ export async function generateGeminiText(prompt: string, options: GeminiOptions 
 
   if (!response.ok) {
     const payload = (await response.json().catch(() => null)) as GeminiErrorResponse | null;
-    if (payload?.error?.message?.includes('API key not valid')) {
+    const message = payload?.error?.message || '';
+    const status = payload?.error?.status;
+
+    if (status === 'RESOURCE_EXHAUSTED' && message.includes('prepayment credits are depleted')) {
       throw new Error(
-        'Gemini API key is invalid. Create a Google AI Studio API key and save it as GEMINI_API_KEY.'
+        'Gemini API is paused because its project has no available prepaid credits. To keep this app free, use a Google AI Studio Free Tier API key from a project that is not on paid/prepay billing.'
       );
     }
 
-    throw new Error(
-      payload?.error?.message || `Gemini API request failed with status ${response.status}.`
-    );
+    if (status === 'PERMISSION_DENIED') {
+      throw new Error(
+        'Gemini API permission denied. Check that the API key can call generativelanguage.googleapis.com and that the Gemini API is enabled for its project.'
+      );
+    }
+
+    if (message.includes('API key not valid')) {
+      throw new Error(
+        'Gemini API key is invalid or not allowed to call the Gemini API. Create a Google AI Studio API key with Generative Language API access and save it as GEMINI_API_KEY.'
+      );
+    }
+
+    throw new Error(message || `Gemini API request failed with status ${response.status}.`);
   }
 
   const payload = (await response.json()) as GeminiResponse;

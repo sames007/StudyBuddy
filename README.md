@@ -49,12 +49,14 @@ Use Firebase project `studybuddy-4f855` / project number `32468092136`.
    - Store it locally as `GEMINI_API_KEY`.
    - Store it in Firebase App Hosting as the `GEMINI_API_KEY` secret.
    - Do not reuse the Firebase web app API key here; Gemini needs its own Google AI Studio key.
-   - Optional: set `GEMINI_MODEL`; the default is `gemini-2.5-flash`.
+   - Optional: set `GEMINI_MODEL`; the default is `gemini-2.5-flash-lite`.
+   - For the lowest-risk free setup, use a Google AI Studio Free Tier key from a project that is not attached to paid/prepay Gemini billing.
+   - Gemini API keys inherit the billing tier and credit status of their Google Cloud project. If a key returns "prepayment credits are depleted," create a Free Tier AI Studio key or add credits only if you accept paid usage.
 
 6. Firebase App Hosting
    - Create the backend `studybuddy-backend` in `us-central1`.
    - App Hosting requires the Blaze plan, so it cannot be guaranteed to be strictly cost-free.
-   - This repo keeps `minInstances: 0`, caps `maxInstances: 1`, and uses a Gemini model with free-tier input/output to keep normal portfolio traffic inside no-cost usage.
+   - This repo keeps `minInstances: 0`, caps `maxInstances: 1`, and uses a Gemini Flash-Lite model with free-tier input/output to keep normal portfolio traffic inside no-cost usage.
    - Set a Google Cloud budget alert before sharing the site publicly.
    - For a strict no-credit-card free setup, stop App Hosting and deploy a static-only version to Firebase Hosting Spark; AI server actions will not work in that mode without exposing an API key.
 
