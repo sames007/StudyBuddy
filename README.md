@@ -1,80 +1,84 @@
 # StudyBuddy
 
-StudyBuddy is a Next.js and Firebase study assistant with AI tutoring, note summaries, flashcards, quizzes, book search, authentication, profile pictures, and saved study history.
+StudyBuddy is a full-stack AI study assistant built with Next.js, Firebase, and the Gemini API. It helps students ask study questions, summarize notes, generate flashcards, create quizzes, search books, and save study history behind Firebase Authentication.
+
+Live app: [https://studybuddy-backend--studybuddy-4f855.us-central1.hosted.app](https://studybuddy-backend--studybuddy-4f855.us-central1.hosted.app)
 
 ## Features
 
-- AI Tutor: ask follow-up questions and continue saved tutor conversations.
-- Note Summarizer: paste notes or upload `.txt` / `.md` files for concise summaries.
-- Flashcard Generator: create study cards from any topic.
-- Quiz Generator: create and take multiple-choice or true/false quizzes.
-- Book Search: search Open Library for books and cover images.
-- Study History: save, view, continue, and delete previous study activity.
-- Profile: update display name and upload an avatar.
+- AI Tutor: ask questions, receive structured explanations, and continue saved conversations.
+- Note Summarizer: paste notes or upload `.txt` / `.md` files and generate concise summaries.
+- Flashcard Generator: create up to 12 flashcards from a study topic.
+- Quiz Generator: create up to 8 multiple-choice or true/false questions with explanations.
+- Book Search: search Open Library for book metadata and cover images.
+- Study History: save, view, continue, and delete prior study sessions.
+- Profile: update display name and upload a validated avatar image.
+- Authentication: Firebase Email/Password and Google sign-in support.
 
-## Stack
+## Tech Stack
 
 - Next.js App Router
-- React and Tailwind CSS
+- React 19
+- TypeScript
+- Tailwind CSS
 - Firebase Authentication
 - Cloud Firestore
 - Firebase Storage
-- Gemini API through the official REST endpoint
 - Firebase App Hosting
+- Gemini API through the REST endpoint
+- Open Library Search API
 
-## Firebase Resources To Recreate
+## Project Structure
+
+```text
+src/app              Next.js routes, layouts, and server actions
+src/ai               Gemini REST helper and AI feature flows
+src/components       Shared UI and dashboard components
+src/hooks            Client-side React hooks
+src/lib              Firebase config, app constants, limits, and utilities
+src/types            Shared TypeScript data models
+docs                 Project blueprint and backend reference notes
+firestore.rules      Firestore authorization and validation rules
+storage.rules        Firebase Storage avatar rules
+apphosting.yaml      Firebase App Hosting runtime configuration
+```
+
+## Firebase Resources
 
 Use Firebase project `studybuddy-4f855` / project number `32468092136`.
 
-1. Web app
-   - Use the `StudyBuddy-web` app config from `.env.example`.
-   - The checked-in fallback config uses app ID `1:32468092136:web:aa3fb06cf7b4094e30755d`.
+Required resources:
 
-2. Authentication
-   - Enable Email/Password.
-   - Enable Google sign-in.
-   - Add your deployed domain and local domains to Firebase Auth authorized domains.
+- Web app: use the `StudyBuddy-web` app config from `.env.example`.
+- Authentication: enable Email/Password and Google sign-in.
+- Authorized domains: add the live App Hosting domain and local development domains.
+- Cloud Firestore: create the database, then deploy `firestore.rules` and `firestore.indexes.json`.
+- Firebase Storage: create the default bucket `studybuddy-4f855.firebasestorage.app`, then deploy `storage.rules`.
+- Firebase App Hosting: backend `studybuddy-backend` in `us-central1`.
+- Gemini API: create a Google AI Studio API key and store it as `GEMINI_API_KEY`.
 
-3. Cloud Firestore
-   - Create a Firestore database.
-   - Deploy `firestore.rules`.
-   - Deploy `firestore.indexes.json` for the history query on `studies`.
+## Environment Variables
 
-4. Firebase Storage
-   - Create the default bucket `studybuddy-4f855.firebasestorage.app`.
-   - Deploy `storage.rules` for avatar uploads.
+Create `.env.local` from `.env.example` for local development.
 
-5. Gemini API
-   - Create a Google AI Studio API key.
-   - Store it locally as `GEMINI_API_KEY`.
-   - Store it in Firebase App Hosting as the `GEMINI_API_KEY` secret.
-   - Do not reuse the Firebase web app API key here; Gemini needs its own Google AI Studio key.
-   - Optional: set `GEMINI_MODEL`; the default is `gemini-2.5-flash-lite`.
-   - For the lowest-risk free setup, use a Google AI Studio Free Tier key from a project that is not attached to paid/prepay Gemini billing.
-   - Gemini API keys inherit the billing tier and credit status of their Google Cloud project. If a key returns "prepayment credits are depleted," create a Free Tier AI Studio key or add credits only if you accept paid usage.
+```sh
+GEMINI_API_KEY=your_google_ai_studio_key
+GEMINI_MODEL=gemini-2.5-flash-lite
+```
 
-6. Firebase App Hosting
-   - Create the backend `studybuddy-backend` in `us-central1`.
-   - App Hosting requires the Blaze plan, so it cannot be guaranteed to be strictly cost-free.
-   - This repo keeps `minInstances: 0`, caps `maxInstances: 1`, and uses a Gemini Flash-Lite model with free-tier input/output to keep normal portfolio traffic inside no-cost usage.
-   - Set a Google Cloud budget alert before sharing the site publicly.
-   - For a strict no-credit-card free setup, stop App Hosting and deploy a static-only version to Firebase Hosting Spark; AI server actions will not work in that mode without exposing an API key.
+Do not reuse the Firebase web app API key as the Gemini key. Gemini requires a Google AI Studio key with access to `generativelanguage.googleapis.com`.
 
-Analytics is optional. The config keeps the measurement ID, but the app does not initialize Analytics.
+For the lowest-risk no-cost setup, use a Google AI Studio Free Tier API key from a project that is not attached to paid/prepay Gemini billing. If Gemini returns `prepayment credits are depleted`, create a Free Tier AI Studio key or add credits only if you accept paid usage.
 
-## Local Setup
+## Local Development
+
+Install dependencies:
 
 ```sh
 npm ci
 ```
 
-Create `.env.local` from `.env.example`, then set your real Gemini API key:
-
-```sh
-GEMINI_API_KEY=your_google_ai_studio_key
-```
-
-Run the app:
+Run the development server:
 
 ```sh
 npm run dev
@@ -82,15 +86,20 @@ npm run dev
 
 Open [http://localhost:9002](http://localhost:9002).
 
-## Checks
+## Quality Checks
+
+Run the local verification suite:
 
 ```sh
+npm run lint
 npm run typecheck
 npm run build
 npm audit --audit-level=moderate
 ```
 
-## Deploy
+## Deployment
+
+Deploy Firebase resources and App Hosting:
 
 ```sh
 firebase login
@@ -98,3 +107,28 @@ firebase use studybuddy-4f855
 firebase apphosting:secrets:set GEMINI_API_KEY
 firebase deploy
 ```
+
+Deploy only App Hosting after code changes:
+
+```sh
+firebase deploy --only apphosting --project studybuddy-4f855
+```
+
+Deploy only Firestore and Storage rules:
+
+```sh
+firebase deploy --only firestore,storage --project studybuddy-4f855
+```
+
+## Security Notes
+
+- Firebase web config is public by design; access is enforced through Authentication, Firestore rules, Storage rules, and API key restrictions.
+- Firestore rules validate user ownership, document shape, list sizes, and text limits before allowing writes.
+- Storage rules restrict avatar writes to the signed-in user's folder, validated image MIME types, safe filenames, and files under 2 MB.
+- Gemini secrets are stored in Firebase App Hosting / Secret Manager, not in the client bundle.
+- External Open Library responses are validated before rendering.
+- AI input sizes and output tokens are capped to reduce abuse and control cost.
+
+## Cost Notes
+
+Firebase App Hosting requires the Blaze plan, so strict $0 hosting cannot be guaranteed. This project keeps `minInstances: 0`, caps `maxInstances: 1`, and uses `gemini-2.5-flash-lite` to keep normal portfolio traffic within no-cost usage where possible. Set a Google Cloud budget alert before sharing the app publicly.

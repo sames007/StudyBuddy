@@ -9,11 +9,13 @@ import { Loader2, FileText, Wand2, Upload } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/hooks/use-auth';
 import { db } from '@/lib/firebase';
+import { MAX_SUMMARY_CHARS } from '@/lib/limits';
 import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 
 export default function SummarizerPage() {
   const [formState, formAction, isPending] = useActionState(summarizeNotes, {});
   const [fileName, setFileName] = useState('');
+  const [fileError, setFileError] = useState('');
   const formRef = useRef<HTMLFormElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const lastSavedSummaryRef = useRef<string | null>(null);
@@ -54,14 +56,35 @@ export default function SummarizerPage() {
   const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (!['text/plain', 'text/markdown', ''].includes(file.type)) {
+      setFileError('');
+      const fileName = file.name.toLowerCase();
+      const isAllowedFile =
+        ['text/plain', 'text/markdown', ''].includes(file.type) ||
+        fileName.endsWith('.txt') ||
+        fileName.endsWith('.md');
+
+      if (!isAllowedFile) {
+        setFileName('');
+        setFileError('Please upload a .txt or .md file.');
+        e.target.value = '';
         return;
       }
+
+      const fileText = await file.text();
+      if (fileText.trim().length > MAX_SUMMARY_CHARS) {
+        setFileName('');
+        setFileError(
+          `File is too long. Please keep notes under ${MAX_SUMMARY_CHARS.toLocaleString()} characters.`
+        );
+        e.target.value = '';
+        return;
+      }
+
       setFileName(file.name);
       if(formRef.current) {
         const notesTextArea = formRef.current.elements.namedItem('notes') as HTMLTextAreaElement;
         if(notesTextArea) {
-          notesTextArea.value = await file.text();
+          notesTextArea.value = fileText;
         }
       }
     }
@@ -94,6 +117,7 @@ export default function SummarizerPage() {
               </Button>
               <input id="file" type="file" ref={fileInputRef} accept=".txt,.md" onChange={handleFileChange} className="hidden" />
               {fileName && <p className="text-sm text-muted-foreground">File selected: {fileName}</p>}
+              {fileError && <p className="text-sm text-destructive">{fileError}</p>}
             </div>
             {formState?.error && <p className="text-sm text-destructive">{formState.error}</p>}
             <Button type="submit" disabled={isPending} className="w-full">

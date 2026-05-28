@@ -14,6 +14,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useAuth } from '@/hooks/use-auth';
 import { db } from '@/lib/firebase';
+import { MAX_QUIZ_QUESTIONS } from '@/lib/limits';
 import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 
 function QuizTaker({ quiz, topic, onRestart, score }: { quiz: QuizQuestion[]; topic: string; onRestart: () => void, score: number }) {
@@ -203,13 +204,13 @@ export default function QuizPage() {
             <Label htmlFor="numberOfQuestions">Number of Questions: {numQuestions}</Label>
             <Slider
               id="numberOfQuestions"
-              name="numberOfQuestions"
               min={1}
-              max={10}
+              max={MAX_QUIZ_QUESTIONS}
               step={1}
               value={[numQuestions]}
               onValueChange={(value) => setNumQuestions(value[0])}
             />
+            <input type="hidden" name="numberOfQuestions" value={numQuestions} />
           </div>
           {formState?.error && <p className="text-sm text-destructive">{formState.error}</p>}
           <Button type="submit" disabled={isPending} className="w-full">

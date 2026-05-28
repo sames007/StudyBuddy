@@ -11,6 +11,10 @@ service cloud.firestore {
       return signedIn() && data.userId == request.auth.uid;
     }
 
+    function isText(value, min, max) {
+      return value is string && value.size() >= min && value.size() <= max;
+    }
+
     function isValidStudy(data) {
       return isOwner(data)
         && data.createdAt is timestamp
@@ -19,26 +23,31 @@ service cloud.firestore {
           (
             data.type == 'tutor'
             && data.keys().hasOnly(['userId', 'type', 'topic', 'messages', 'createdAt'])
-            && data.topic is string
+            && isText(data.topic, 1, 120)
             && data.messages is list
+            && data.messages.size() <= 80
           )
           || (
             data.type == 'summaries'
             && data.keys().hasOnly(['userId', 'type', 'notes', 'summary', 'createdAt'])
-            && data.notes is string
-            && data.summary is string
+            && isText(data.notes, 10, 20000)
+            && isText(data.summary, 1, 8000)
           )
           || (
             data.type == 'flashcards'
             && data.keys().hasOnly(['userId', 'type', 'topic', 'flashcards', 'createdAt'])
-            && data.topic is string
+            && isText(data.topic, 2, 120)
             && data.flashcards is list
+            && data.flashcards.size() >= 1
+            && data.flashcards.size() <= 12
           )
           || (
             data.type == 'quizzes'
             && data.keys().hasOnly(['userId', 'type', 'topic', 'quiz', 'score', 'createdAt'])
-            && data.topic is string
+            && isText(data.topic, 2, 120)
             && data.quiz is list
+            && data.quiz.size() >= 1
+            && data.quiz.size() <= 8
             && (!('score' in data) || data.score is string)
           )
         );

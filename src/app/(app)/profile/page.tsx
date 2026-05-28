@@ -16,9 +16,11 @@ import { useEffect, useState, useRef, ChangeEvent } from 'react';
 import { Loader2 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { storage } from '@/lib/firebase';
-
-const MAX_AVATAR_SIZE_BYTES = 2 * 1024 * 1024;
-const ALLOWED_AVATAR_TYPES = ['image/png', 'image/jpeg', 'image/gif', 'image/webp'];
+import {
+  getAvatarExtension,
+  isAllowedAvatarType,
+  MAX_AVATAR_SIZE_BYTES,
+} from '@/lib/limits';
 
 const profileSchema = z.object({
   displayName: z.string().min(2, 'Name must be at least 2 characters.'),
@@ -61,7 +63,7 @@ export default function ProfilePage() {
     const file = e.target.files?.[0];
     if (!file || !user) return;
 
-    if (!ALLOWED_AVATAR_TYPES.includes(file.type)) {
+    if (!isAllowedAvatarType(file.type)) {
       toast({
         variant: 'destructive',
         title: 'Unsupported File',
@@ -80,7 +82,7 @@ export default function ProfilePage() {
     }
 
     setIsUploading(true);
-    const extension = file.name.split('.').pop()?.toLowerCase() || 'img';
+    const extension = getAvatarExtension(file.type);
     const storageRef = ref(storage, `avatars/${user.uid}/${crypto.randomUUID()}.${extension}`);
 
     try {

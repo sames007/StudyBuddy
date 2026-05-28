@@ -1,12 +1,13 @@
 'use server';
 
 import { generateFlashcards as generateFlashcardsFlow } from '@/ai/flows/generate-flashcards';
+import { MAX_FLASHCARDS } from '@/lib/limits';
 import { z } from 'zod';
 import type { Flashcard } from '@/types';
 
 const schema = z.object({
   topic: z.string().trim().min(2, 'Topic must be at least 2 characters.').max(120),
-  numberOfCards: z.coerce.number().min(1).max(12),
+  numberOfCards: z.coerce.number().min(1).max(MAX_FLASHCARDS),
 });
 
 type State = {

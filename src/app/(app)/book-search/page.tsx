@@ -96,10 +96,12 @@ export default function BookSearchPage() {
                 </CardHeader>
                 <CardContent>
                   <p className="text-sm text-muted-foreground">
-                    First published in {book.first_publish_year}
+                    {book.first_publish_year
+                      ? `First published in ${book.first_publish_year}`
+                      : 'Publication year unavailable'}
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    {book.edition_count} editions
+                    {book.edition_count} {book.edition_count === 1 ? 'edition' : 'editions'}
                   </p>
                 </CardContent>
               </Card>

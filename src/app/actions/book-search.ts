@@ -23,6 +23,21 @@ interface SearchResult {
   error?: string;
 }
 
+const bookSchema = z.object({
+  key: z.string(),
+  title: z.string(),
+  author_name: z.array(z.string()).optional(),
+  first_publish_year: z.number().int().optional(),
+  edition_count: z.number().int().nonnegative().catch(0),
+  cover_i: z.number().int().positive().optional(),
+});
+
+const searchResultSchema = z.object({
+  num_found: z.number().int().nonnegative().catch(0),
+  start: z.number().int().nonnegative().catch(0),
+  docs: z.array(bookSchema).catch([]),
+});
+
 export async function searchBooks(
   _prevState: SearchResult,
   formData: FormData
@@ -50,7 +65,7 @@ export async function searchBooks(
     if (!response.ok) {
       throw new Error(`API request failed with status ${response.status}`);
     }
-    const data: SearchResult = await response.json();
+    const data = searchResultSchema.parse(await response.json());
     return {...data, query};
   } catch (e: unknown) {
     console.error('Open Library API error:', e);
@@ -59,7 +74,12 @@ export async function searchBooks(
       start: 0,
       docs: [],
       query,
-      error: e instanceof Error ? e.message : 'Failed to search for books. Please try again.',
+      error:
+        e instanceof z.ZodError
+          ? 'Open Library returned an unexpected response. Please try again.'
+          : e instanceof Error
+            ? e.message
+            : 'Failed to search for books. Please try again.',
     };
   }
 }

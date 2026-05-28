@@ -1,12 +1,13 @@
 'use server';
 
 import { generateQuiz as generateQuizFlow } from '@/ai/flows/generate-quiz';
+import { MAX_QUIZ_QUESTIONS } from '@/lib/limits';
 import { z } from 'zod';
 import type { QuizQuestion } from '@/types';
 
 const schema = z.object({
   topic: z.string().trim().min(2, 'Topic must be at least 2 characters.').max(120),
-  numberOfQuestions: z.coerce.number().min(1).max(8),
+  numberOfQuestions: z.coerce.number().min(1).max(MAX_QUIZ_QUESTIONS),
 });
 
 type State = {

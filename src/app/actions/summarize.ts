@@ -1,10 +1,18 @@
 'use server';
 
 import { summarizeNotes as summarizeNotesFlow } from '@/ai/flows/summarize-notes';
+import { MAX_SUMMARY_CHARS } from '@/lib/limits';
 import { z } from 'zod';
 
 const schema = z.object({
-  notes: z.string().trim().min(10, 'Please provide more text to summarize.').max(20000, 'Notes are too long. Please keep them under 20,000 characters.'),
+  notes: z
+    .string()
+    .trim()
+    .min(10, 'Please provide more text to summarize.')
+    .max(
+      MAX_SUMMARY_CHARS,
+      `Notes are too long. Please keep them under ${MAX_SUMMARY_CHARS.toLocaleString()} characters.`
+    ),
 });
 
 type State = {

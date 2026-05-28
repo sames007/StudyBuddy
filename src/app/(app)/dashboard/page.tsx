@@ -45,9 +45,6 @@ export default function DashboardPage() {
           <FeatureCard key={feature.title} {...feature} />
         ))}
       </div>
-      <div>
-        {/* Placeholder for Recent Activity section */}
-      </div>
     </div>
   );
 }

@@ -12,6 +12,7 @@ import { Flashcard } from '@/components/flashcards/flashcard';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import { useAuth } from '@/hooks/use-auth';
 import { db } from '@/lib/firebase';
+import { MAX_FLASHCARDS } from '@/lib/limits';
 import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 
 export default function FlashcardsPage() {
@@ -69,13 +70,13 @@ export default function FlashcardsPage() {
               <Label htmlFor="numberOfCards">Number of Cards: {numCards}</Label>
               <Slider
                 id="numberOfCards"
-                name="numberOfCards"
                 min={1}
-                max={20}
+                max={MAX_FLASHCARDS}
                 step={1}
                 value={[numCards]}
                 onValueChange={(value) => setNumCards(value[0])}
               />
+              <input type="hidden" name="numberOfCards" value={numCards} />
             </div>
             {formState?.error && <p className="text-sm text-destructive">{formState.error}</p>}
             <Button type="submit" disabled={isPending} className="w-full">
