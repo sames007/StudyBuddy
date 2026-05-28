@@ -27,11 +27,16 @@ ${parsedInput.notes}
 
 Return a JSON object with one field: summary.`;
 
-  return generateGeminiJson(prompt, SummarizeNotesOutputSchema, {
-    type: 'object',
-    properties: {
-      summary: { type: 'string' },
+  return generateGeminiJson(
+    prompt,
+    SummarizeNotesOutputSchema,
+    {
+      type: 'object',
+      properties: {
+        summary: { type: 'string' },
+      },
+      required: ['summary'],
     },
-    required: ['summary'],
-  });
+    { maxOutputTokens: 900 }
+  );
 }

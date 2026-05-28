@@ -31,11 +31,16 @@ ${parsedInput.question}
 
 Return a JSON object with one field: answer.`;
 
-  return generateGeminiJson(prompt, AnswerQuestionOutputSchema, {
-    type: 'object',
-    properties: {
-      answer: { type: 'string' },
+  return generateGeminiJson(
+    prompt,
+    AnswerQuestionOutputSchema,
+    {
+      type: 'object',
+      properties: {
+        answer: { type: 'string' },
+      },
+      required: ['answer'],
     },
-    required: ['answer'],
-  });
+    { maxOutputTokens: 900 }
+  );
 }

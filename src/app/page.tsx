@@ -3,6 +3,7 @@ import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Logo } from '@/components/logo';
+import { APP_NAME } from '@/lib/brand';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { BrainCircuit, GraduationCap, FileText, Bot } from 'lucide-react';
 
@@ -55,11 +56,11 @@ export default function LandingPage() {
                 Your AI-Powered Learning Partner
               </h1>
               <p className="text-lg text-muted-foreground md:text-xl">
-                StudyBuddy is an intelligent, all-in-one study assistant. It leverages AI to provide you with powerful tools to enhance your learning process.
+                {APP_NAME} is an intelligent, all-in-one study assistant. It uses AI to give you focused tools for stronger study sessions.
               </p>
               <div className="flex gap-4">
                 <Button size="lg" asChild>
-                  <Link href="/signup">Get Started for Free</Link>
+                  <Link href="/signup">Start Studying</Link>
                 </Button>
               </div>
             </div>
@@ -83,7 +84,7 @@ export default function LandingPage() {
             <div className="text-center space-y-4 mb-12">
               <h2 className="text-3xl md:text-4xl font-bold">A Smarter Way to Study</h2>
               <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
-                From understanding complex topics to preparing for exams, StudyBuddy has you covered with a suite of intelligent tools.
+                From understanding complex topics to preparing for exams, {APP_NAME} gives you a focused suite of intelligent tools.
               </p>
             </div>
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -105,7 +106,7 @@ export default function LandingPage() {
         </section>
       </main>
       <footer className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col sm:flex-row justify-between items-center text-muted-foreground text-sm gap-4">
-        <p>&copy; {new Date().getFullYear()} StudyBuddy AI. All rights reserved.</p>
+        <p>&copy; {new Date().getFullYear()} {APP_NAME}. All rights reserved.</p>
         <div className='hidden sm:block'><Logo /></div>
       </footer>
     </div>

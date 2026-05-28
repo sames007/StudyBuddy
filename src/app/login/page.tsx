@@ -16,6 +16,7 @@ import { Logo } from '@/components/logo';
 import { useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 import { getErrorCode, getErrorMessage } from '@/lib/errors';
+import { APP_NAME } from '@/lib/brand';
 
 const loginSchema = z.object({
   email: z.string().email({ message: 'Invalid email address.' }),
@@ -73,7 +74,7 @@ export default function LoginPage() {
             <Logo />
           </Link>
           <CardTitle>Welcome Back</CardTitle>
-          <CardDescription>Sign in to your StudyBuddy AI account</CardDescription>
+          <CardDescription>Sign in to your {APP_NAME} account</CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>

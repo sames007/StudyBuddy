@@ -35,30 +35,35 @@ For every question, provide a brief explanation for the correct answer.
 
 Return a JSON object with one field: quiz.`;
 
-  return generateGeminiJson(prompt, GenerateQuizOutputSchema, {
-    type: 'object',
-    properties: {
-      quiz: {
-        type: 'array',
-        items: {
-          type: 'object',
-          properties: {
-            question: { type: 'string' },
-            type: {
-              type: 'string',
-              enum: ['multiple-choice', 'true-false'],
+  return generateGeminiJson(
+    prompt,
+    GenerateQuizOutputSchema,
+    {
+      type: 'object',
+      properties: {
+        quiz: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              question: { type: 'string' },
+              type: {
+                type: 'string',
+                enum: ['multiple-choice', 'true-false'],
+              },
+              options: {
+                type: 'array',
+                items: { type: 'string' },
+              },
+              answer: { type: 'string' },
+              explanation: { type: 'string' },
             },
-            options: {
-              type: 'array',
-              items: { type: 'string' },
-            },
-            answer: { type: 'string' },
-            explanation: { type: 'string' },
+            required: ['question', 'type', 'answer', 'explanation'],
           },
-          required: ['question', 'type', 'answer', 'explanation'],
         },
       },
+      required: ['quiz'],
     },
-    required: ['quiz'],
-  });
+    { maxOutputTokens: 1800 }
+  );
 }

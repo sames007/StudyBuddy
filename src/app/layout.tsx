@@ -1,9 +1,10 @@
 import type { Metadata } from 'next';
 import { Providers } from '@/components/providers';
+import { APP_NAME } from '@/lib/brand';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'StudyBuddy AI: Your AI-Powered Learning Partner',
+  title: `${APP_NAME}: Your AI-Powered Learning Partner`,
   description: 'An intelligent, all-in-one study assistant.',
 };
 

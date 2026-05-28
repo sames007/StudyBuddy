@@ -6,7 +6,7 @@ import type { Flashcard } from '@/types';
 
 const schema = z.object({
   topic: z.string().trim().min(2, 'Topic must be at least 2 characters.').max(120),
-  numberOfCards: z.coerce.number().min(1).max(20),
+  numberOfCards: z.coerce.number().min(1).max(12),
 });
 
 type State = {

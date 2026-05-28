@@ -5,8 +5,8 @@ import { z } from 'zod';
 import type { TutorMessage } from '@/types';
 
 const schema = z.object({
-  question: z.string().trim().min(1, 'Question cannot be empty.').max(2000),
-  messages: z.string().max(60000), // JSON string of TutorMessage[]
+  question: z.string().trim().min(1, 'Question cannot be empty.').max(1000),
+  messages: z.string().max(20000), // JSON string of TutorMessage[]
   conversationId: z.string().optional(),
 });
 

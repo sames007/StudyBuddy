@@ -11,6 +11,7 @@ type GeminiSchema = {
 type GeminiOptions = {
   responseSchema?: GeminiSchema;
   responseMimeType?: 'application/json';
+  maxOutputTokens?: number;
   temperature?: number;
 };
 
@@ -33,7 +34,7 @@ type GeminiErrorResponse = {
   };
 };
 
-const DEFAULT_MODEL = 'gemini-3.5-flash';
+const DEFAULT_MODEL = 'gemini-2.5-flash';
 
 function getGeminiApiKey() {
   const apiKey = process.env.GEMINI_API_KEY;
@@ -88,15 +89,13 @@ export async function generateGeminiText(prompt: string, options: GeminiOptions 
         },
       ],
       generationConfig: {
+        candidateCount: 1,
         temperature: options.temperature ?? 0.4,
+        ...(options.maxOutputTokens ? { maxOutputTokens: options.maxOutputTokens } : {}),
         ...(options.responseMimeType && options.responseSchema
           ? {
-              responseFormat: {
-                text: {
-                  mimeType: options.responseMimeType,
-                  schema: options.responseSchema,
-                },
-              },
+              responseMimeType: options.responseMimeType,
+              responseJsonSchema: options.responseSchema,
             }
           : {}),
       },
@@ -105,6 +104,12 @@ export async function generateGeminiText(prompt: string, options: GeminiOptions 
 
   if (!response.ok) {
     const payload = (await response.json().catch(() => null)) as GeminiErrorResponse | null;
+    if (payload?.error?.message?.includes('API key not valid')) {
+      throw new Error(
+        'Gemini API key is invalid. Create a Google AI Studio API key and save it as GEMINI_API_KEY.'
+      );
+    }
+
     throw new Error(
       payload?.error?.message || `Gemini API request failed with status ${response.status}.`
     );

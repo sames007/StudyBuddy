@@ -4,7 +4,7 @@ import { summarizeNotes as summarizeNotesFlow } from '@/ai/flows/summarize-notes
 import { z } from 'zod';
 
 const schema = z.object({
-  notes: z.string().trim().min(10, 'Please provide more text to summarize.').max(50000, 'Notes are too long. Please keep them under 50,000 characters.'),
+  notes: z.string().trim().min(10, 'Please provide more text to summarize.').max(20000, 'Notes are too long. Please keep them under 20,000 characters.'),
 });
 
 type State = {

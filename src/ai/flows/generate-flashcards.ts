@@ -33,21 +33,26 @@ Make the front side a clear prompt or question and the back side a concise answe
 
 Return a JSON object with one field: flashcards.`;
 
-  return generateGeminiJson(prompt, GenerateFlashcardsOutputSchema, {
-    type: 'object',
-    properties: {
-      flashcards: {
-        type: 'array',
-        items: {
-          type: 'object',
-          properties: {
-            front: { type: 'string' },
-            back: { type: 'string' },
+  return generateGeminiJson(
+    prompt,
+    GenerateFlashcardsOutputSchema,
+    {
+      type: 'object',
+      properties: {
+        flashcards: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              front: { type: 'string' },
+              back: { type: 'string' },
+            },
+            required: ['front', 'back'],
           },
-          required: ['front', 'back'],
         },
       },
+      required: ['flashcards'],
     },
-    required: ['flashcards'],
-  });
+    { maxOutputTokens: 1600 }
+  );
 }

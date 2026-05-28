@@ -1,6 +1,6 @@
-# StudyBuddy
+# StudyPilot AI
 
-StudyBuddy is a Next.js and Firebase study assistant with AI tutoring, note summaries, flashcards, quizzes, book search, authentication, profile pictures, and saved study history.
+StudyPilot AI is a Next.js and Firebase study assistant with AI tutoring, note summaries, flashcards, quizzes, book search, authentication, profile pictures, and saved study history.
 
 ## Features
 
@@ -48,11 +48,15 @@ Use Firebase project `studybuddy-4f855` / project number `32468092136`.
    - Create a Google AI Studio API key.
    - Store it locally as `GEMINI_API_KEY`.
    - Store it in Firebase App Hosting as the `GEMINI_API_KEY` secret.
-   - Optional: set `GEMINI_MODEL`; the default is `gemini-3.5-flash`.
+   - Do not reuse the Firebase web app API key here; Gemini needs its own Google AI Studio key.
+   - Optional: set `GEMINI_MODEL`; the default is `gemini-2.5-flash`.
 
 6. Firebase App Hosting
    - Create the backend `studybuddy-backend` in `us-central1`.
-   - App Hosting requires the Blaze plan.
+   - App Hosting requires the Blaze plan, so it cannot be guaranteed to be strictly cost-free.
+   - This repo keeps `minInstances: 0`, caps `maxInstances: 1`, and uses a Gemini model with free-tier input/output to keep normal portfolio traffic inside no-cost usage.
+   - Set a Google Cloud budget alert before sharing the site publicly.
+   - For a strict no-credit-card free setup, stop App Hosting and deploy a static-only version to Firebase Hosting Spark; AI server actions will not work in that mode without exposing an API key.
 
 Analytics is optional. The config keeps the measurement ID, but the app does not initialize Analytics.
 
