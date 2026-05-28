@@ -44,12 +44,11 @@ export function UserNav() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="relative h-8 w-8 rounded-full group">
-          <Avatar className="h-9 w-9 transition-all duration-300 group-hover:ring-2 group-hover:ring-primary group-hover:ring-offset-2 group-hover:ring-offset-background">
+        <Button variant="ghost" className="relative h-10 w-10 rounded-full p-0 group">
+          <Avatar className="h-9 w-9 border border-border/70 transition-all duration-200 group-hover:ring-2 group-hover:ring-primary group-hover:ring-offset-2 group-hover:ring-offset-background">
             <AvatarImage 
               src={user.photoURL ?? ''} 
               alt={user.displayName ?? 'User'} 
-              className="grayscale group-hover:grayscale-0 transition-all duration-300"
             />
             <AvatarFallback className="bg-secondary text-primary font-semibold">{getInitials(user.displayName)}</AvatarFallback>
           </Avatar>

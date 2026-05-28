@@ -13,7 +13,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useEffect, useState, useRef, ChangeEvent } from 'react';
-import { Loader2 } from 'lucide-react';
+import { Camera, Loader2 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { storage } from '@/lib/firebase';
 import {
@@ -160,23 +160,37 @@ export default function ProfilePage() {
         <CardDescription>Manage your account settings and profile information.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        <div className="flex items-center space-x-4">
-          <div className="relative">
-            <Avatar className="h-24 w-24 cursor-pointer" onClick={handleAvatarClick}>
-              <AvatarImage src={photoURL ?? ''} alt={user?.displayName ?? ''} />
-              <AvatarFallback className="text-3xl">
-                {getInitials(user?.displayName)}
-              </AvatarFallback>
-            </Avatar>
-            {isUploading && (
-                <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full">
-                    <Loader2 className="h-8 w-8 animate-spin text-white" />
-                </div>
-            )}
+        <div className="flex flex-col gap-4 rounded-lg border bg-muted/30 p-4 sm:flex-row sm:items-center">
+          <div className="relative w-fit">
+            <button
+              type="button"
+              onClick={handleAvatarClick}
+              disabled={isUploading}
+              className="group relative block rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-wait"
+              aria-label="Change profile picture"
+            >
+              <Avatar className="h-24 w-24 border-2 border-background shadow-md ring-1 ring-border">
+                <AvatarImage src={photoURL ?? ''} alt={user?.displayName ?? 'Profile picture'} />
+                <AvatarFallback className="bg-primary/10 text-3xl font-semibold text-primary">
+                  {getInitials(user?.displayName)}
+                </AvatarFallback>
+              </Avatar>
+              <span className="absolute bottom-1 right-1 flex h-8 w-8 items-center justify-center rounded-full border border-background bg-primary text-primary-foreground shadow-sm transition-transform group-hover:scale-105">
+                {isUploading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Camera className="h-4 w-4" />
+                )}
+              </span>
+            </button>
           </div>
-          <Button variant="outline" onClick={handleAvatarClick} disabled={isUploading}>
-            {isUploading ? 'Uploading...' : 'Change Picture'}
-          </Button>
+          <div className="space-y-2">
+            <p className="text-sm font-medium">{user.displayName || 'StudyBuddy user'}</p>
+            <p className="text-sm text-muted-foreground">{user.email}</p>
+            <Button variant="outline" onClick={handleAvatarClick} disabled={isUploading}>
+              {isUploading ? 'Uploading...' : 'Change Picture'}
+            </Button>
+          </div>
           <input
             type="file"
             ref={fileInputRef}
