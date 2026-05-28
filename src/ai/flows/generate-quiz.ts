@@ -3,11 +3,17 @@
  */
 
 import { generateGeminiJson } from '@/ai/gemini';
+import { MAX_QUIZ_QUESTIONS } from '@/lib/limits';
 import { z } from 'zod';
 
 const GenerateQuizInputSchema = z.object({
   topic: z.string().describe('The topic for which to generate the quiz.'),
-  numberOfQuestions: z.number().min(1).max(10).default(5).describe('The number of questions to generate.'),
+  numberOfQuestions: z
+    .number()
+    .min(1)
+    .max(MAX_QUIZ_QUESTIONS)
+    .default(5)
+    .describe('The number of questions to generate.'),
 });
 type GenerateQuizInput = z.infer<typeof GenerateQuizInputSchema>;
 

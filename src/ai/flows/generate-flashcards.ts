@@ -5,11 +5,17 @@
  */
 
 import { generateGeminiJson } from '@/ai/gemini';
+import { MAX_FLASHCARDS } from '@/lib/limits';
 import { z } from 'zod';
 
 const GenerateFlashcardsInputSchema = z.object({
   topic: z.string().describe('The topic for which to generate flashcards.'),
-  numberOfCards: z.number().min(1).max(20).default(5).describe('The number of flashcards to generate.'),
+  numberOfCards: z
+    .number()
+    .min(1)
+    .max(MAX_FLASHCARDS)
+    .default(5)
+    .describe('The number of flashcards to generate.'),
 });
 
 type GenerateFlashcardsInput = z.infer<typeof GenerateFlashcardsInputSchema>;
