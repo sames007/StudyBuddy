@@ -2,6 +2,7 @@
 
 import { summarizeNotes as summarizeNotesFlow } from '@/ai/flows/summarize-notes';
 import { MAX_SUMMARY_CHARS } from '@/lib/limits';
+import { requireAuthenticatedUser } from '@/lib/server-auth';
 import { z } from 'zod';
 
 const schema = z.object({
@@ -35,6 +36,7 @@ export async function summarizeNotes(prevState: State, formData: FormData): Prom
   const { notes } = validatedFields.data;
 
   try {
+    await requireAuthenticatedUser(formData);
     const response = await summarizeNotesFlow({ notes });
     return { summary: response.summary, notes: notes };
   } catch (e: unknown) {

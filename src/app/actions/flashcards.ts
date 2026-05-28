@@ -2,6 +2,7 @@
 
 import { generateFlashcards as generateFlashcardsFlow } from '@/ai/flows/generate-flashcards';
 import { MAX_FLASHCARDS } from '@/lib/limits';
+import { requireAuthenticatedUser } from '@/lib/server-auth';
 import { z } from 'zod';
 import type { Flashcard } from '@/types';
 
@@ -31,6 +32,7 @@ export async function generateFlashcards(prevState: State, formData: FormData): 
   const { topic, numberOfCards } = validatedFields.data;
 
   try {
+    await requireAuthenticatedUser(formData);
     const response = await generateFlashcardsFlow({ topic, numberOfCards });
     return { flashcards: response.flashcards, topic };
   } catch (e: unknown) {

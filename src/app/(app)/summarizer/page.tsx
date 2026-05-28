@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Textarea } from '@/components/ui/textarea';
 import { Loader2, FileText, Wand2, Upload } from 'lucide-react';
 import { Label } from '@/components/ui/label';
-import { useAuth } from '@/hooks/use-auth';
+import { useAuthToken } from '@/hooks/use-auth-token';
 import { db } from '@/lib/firebase';
 import { MAX_SUMMARY_CHARS } from '@/lib/limits';
 import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
@@ -19,7 +19,7 @@ export default function SummarizerPage() {
   const formRef = useRef<HTMLFormElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const lastSavedSummaryRef = useRef<string | null>(null);
-  const { user } = useAuth();
+  const { user, idToken } = useAuthToken();
   
   useEffect(() => {
     if (isPending || !formState.summary || !formState.notes || !user) {
@@ -108,6 +108,7 @@ export default function SummarizerPage() {
                 className="min-h-[300px]"
                 required
               />
+              <input type="hidden" name="idToken" value={idToken} />
             </div>
              <div className="grid w-full items-center gap-1.5">
               <Label>Or upload a file</Label>
@@ -120,7 +121,7 @@ export default function SummarizerPage() {
               {fileError && <p className="text-sm text-destructive">{fileError}</p>}
             </div>
             {formState?.error && <p className="text-sm text-destructive">{formState.error}</p>}
-            <Button type="submit" disabled={isPending} className="w-full">
+            <Button type="submit" disabled={isPending || !idToken} className="w-full">
               {isPending ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Summarizing...</> : <><Wand2 className="mr-2 h-4 w-4" /> Summarize Notes</>}
             </Button>
           </form>

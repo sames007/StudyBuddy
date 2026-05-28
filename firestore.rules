@@ -104,9 +104,9 @@ service cloud.firestore {
       allow create, update: if signedIn()
         && request.auth.uid == userId
         && request.resource.data.keys().hasOnly(['displayName', 'email', 'photoURL', 'updatedAt'])
-        && (!('displayName' in request.resource.data) || request.resource.data.displayName is string)
-        && (!('email' in request.resource.data) || request.resource.data.email is string)
-        && (!('photoURL' in request.resource.data) || request.resource.data.photoURL is string)
+        && (!('displayName' in request.resource.data) || isText(request.resource.data.displayName, 0, 120))
+        && (!('email' in request.resource.data) || isText(request.resource.data.email, 0, 320))
+        && (!('photoURL' in request.resource.data) || isText(request.resource.data.photoURL, 0, 2048))
         && (!('updatedAt' in request.resource.data) || request.resource.data.updatedAt is timestamp);
 
        /**

@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Send, Bot, Loader2 } from 'lucide-react';
-import { useAuth } from '@/hooks/use-auth';
+import { useAuthToken } from '@/hooks/use-auth-token';
 import type { TutorMessage as Message } from '@/types';
 import { db } from '@/lib/firebase';
 import {
@@ -29,7 +29,7 @@ type TutorState = {
 };
 
 function TutorPageComponent() {
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, idToken } = useAuthToken();
   
   const searchParams = useSearchParams();
   const conversationIdParam = searchParams.get('conversationId');
@@ -120,8 +120,9 @@ function TutorPageComponent() {
 
   const handleFormSubmit = (formData: FormData) => {
     const question = formData.get('question') as string;
-    if (!question.trim()) return;
+    if (!question.trim() || !idToken) return;
 
+    formData.set('idToken', idToken);
     formAction(formData);
     formRef.current?.reset();
   };
@@ -135,7 +136,7 @@ function TutorPageComponent() {
     return name[0];
   };
 
-  const isFormDisabled = isPending || authLoading || !user;
+  const isFormDisabled = isPending || authLoading || !user || !idToken;
 
   return (
     <Card className="flex flex-col h-[calc(100vh-8rem)]">
@@ -203,6 +204,7 @@ function TutorPageComponent() {
         <form ref={formRef} action={handleFormSubmit} className="flex w-full items-center space-x-2">
           <input type="hidden" name="messages" value={JSON.stringify(state.messages)} />
           <input type="hidden" name="conversationId" value={conversationId || ''} />
+          <input type="hidden" name="idToken" value={idToken} />
           <Input id="question" name="question" placeholder={authLoading ? 'Authenticating...' : 'Ask anything...'} autoComplete="off" disabled={isFormDisabled} />
           <Button type="submit" size="icon" disabled={isFormDisabled}>
             <Send className="h-4 w-4" />

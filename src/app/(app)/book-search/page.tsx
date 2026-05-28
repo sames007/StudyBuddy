@@ -14,6 +14,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Loader2, Search, Book } from 'lucide-react';
 import Image from 'next/image';
+import { useAuthToken } from '@/hooks/use-auth-token';
 
 export default function BookSearchPage() {
   const [state, formAction, isPending] = useActionState(searchBooks, {
@@ -21,6 +22,7 @@ export default function BookSearchPage() {
     num_found: 0,
     start: 0,
   });
+  const { idToken } = useAuthToken();
 
   return (
     <div className="space-y-8 max-w-5xl mx-auto">
@@ -43,8 +45,9 @@ export default function BookSearchPage() {
                 placeholder="e.g., The Lord of the Rings"
                 required
               />
+              <input type="hidden" name="idToken" value={idToken} />
             </div>
-            <Button type="submit" disabled={isPending}>
+            <Button type="submit" disabled={isPending || !idToken}>
               {isPending ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Searching...

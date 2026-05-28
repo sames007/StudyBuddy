@@ -1,6 +1,7 @@
 'use server';
 
 import { answerQuestion } from '@/ai/flows/answer-questions-ai-tutor';
+import { requireAuthenticatedUser } from '@/lib/server-auth';
 import { z } from 'zod';
 import type { TutorMessage } from '@/types';
 
@@ -47,6 +48,7 @@ export async function askTutor(prevState: State, formData: FormData): Promise<St
   const historyAsString = history.map(m => `${m.role}: ${m.content}`).join('\n');
 
   try {
+    await requireAuthenticatedUser(formData);
     const response = await answerQuestion({ question, historyAsString });
     const assistantMessage: TutorMessage = { role: 'assistant', content: response.answer };
 

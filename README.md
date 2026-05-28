@@ -123,6 +123,7 @@ firebase deploy --only firestore,storage --project studybuddy-4f855
 ## Security Notes
 
 - Firebase web config is public by design; access is enforced through Authentication, Firestore rules, Storage rules, and API key restrictions.
+- Protected server actions verify the user's Firebase ID token before calling Gemini or proxying protected requests.
 - Firestore rules validate user ownership, document shape, list sizes, and text limits before allowing writes.
 - Storage rules restrict avatar writes to the signed-in user's folder, validated image MIME types, safe filenames, and files under 2 MB.
 - Gemini secrets are stored in Firebase App Hosting / Secret Manager, not in the client bundle.

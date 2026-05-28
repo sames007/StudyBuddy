@@ -2,6 +2,7 @@
 
 import { generateQuiz as generateQuizFlow } from '@/ai/flows/generate-quiz';
 import { MAX_QUIZ_QUESTIONS } from '@/lib/limits';
+import { requireAuthenticatedUser } from '@/lib/server-auth';
 import { z } from 'zod';
 import type { QuizQuestion } from '@/types';
 
@@ -30,6 +31,7 @@ export async function generateQuiz(prevState: State, formData: FormData): Promis
   const { topic, numberOfQuestions } = validatedFields.data;
 
   try {
+    await requireAuthenticatedUser(formData);
     const response = await generateQuizFlow({ topic, numberOfQuestions });
     
     return {

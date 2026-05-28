@@ -10,7 +10,7 @@ import { Slider } from '@/components/ui/slider';
 import { BrainCircuit, Loader2 } from 'lucide-react';
 import { Flashcard } from '@/components/flashcards/flashcard';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
-import { useAuth } from '@/hooks/use-auth';
+import { useAuthToken } from '@/hooks/use-auth-token';
 import { db } from '@/lib/firebase';
 import { MAX_FLASHCARDS } from '@/lib/limits';
 import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
@@ -19,7 +19,7 @@ export default function FlashcardsPage() {
   const [formState, formAction, isPending] = useActionState(generateFlashcards, {});
   const [numCards, setNumCards] = useState(5);
   const lastSavedFlashcardsRef = useRef<string | null>(null);
-  const { user } = useAuth();
+  const { user, idToken } = useAuthToken();
 
   useEffect(() => {
     if (isPending || !formState.flashcards || formState.flashcards.length === 0 || !user) {
@@ -77,9 +77,10 @@ export default function FlashcardsPage() {
                 onValueChange={(value) => setNumCards(value[0])}
               />
               <input type="hidden" name="numberOfCards" value={numCards} />
+              <input type="hidden" name="idToken" value={idToken} />
             </div>
             {formState?.error && <p className="text-sm text-destructive">{formState.error}</p>}
-            <Button type="submit" disabled={isPending} className="w-full">
+            <Button type="submit" disabled={isPending || !idToken} className="w-full">
               {isPending ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Generating...</> : <><BrainCircuit className="mr-2 h-4 w-4" /> Generate Flashcards</>}
             </Button>
           </form>

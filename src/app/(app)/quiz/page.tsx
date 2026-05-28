@@ -12,13 +12,13 @@ import type { QuizQuestion } from '@/types';
 import { cn } from '@/lib/utils';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { useAuth } from '@/hooks/use-auth';
+import { useAuthToken } from '@/hooks/use-auth-token';
 import { db } from '@/lib/firebase';
 import { MAX_QUIZ_QUESTIONS } from '@/lib/limits';
 import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 
 function QuizTaker({ quiz, topic, onRestart, score }: { quiz: QuizQuestion[]; topic: string; onRestart: () => void, score: number }) {
-  const { user } = useAuth();
+  const { user } = useAuthToken();
   const savedQuizRef = useRef<string | null>(null);
   
   useEffect(() => {
@@ -150,6 +150,7 @@ export default function QuizPage() {
   const [numQuestions, setNumQuestions] = useState(5);
   const [quizState, setQuizState] = useState<'configuring' | 'taking' | 'finished'>('configuring');
   const [finalScore, setFinalScore] = useState(0);
+  const { idToken } = useAuthToken();
   
   const quiz = useMemo(() => formState.quiz, [formState.quiz]);
   const topic = useMemo(() => formState.topic, [formState.topic]);
@@ -211,9 +212,10 @@ export default function QuizPage() {
               onValueChange={(value) => setNumQuestions(value[0])}
             />
             <input type="hidden" name="numberOfQuestions" value={numQuestions} />
+            <input type="hidden" name="idToken" value={idToken} />
           </div>
           {formState?.error && <p className="text-sm text-destructive">{formState.error}</p>}
-          <Button type="submit" disabled={isPending} className="w-full">
+          <Button type="submit" disabled={isPending || !idToken} className="w-full">
             <GraduationCap className="mr-2 h-4 w-4" /> Generate Quiz
           </Button>
         </form>

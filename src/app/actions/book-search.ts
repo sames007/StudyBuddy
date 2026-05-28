@@ -1,5 +1,6 @@
 'use server';
 
+import { requireAuthenticatedUser } from '@/lib/server-auth';
 import { z } from 'zod';
 
 const searchSchema = z.object({
@@ -61,6 +62,7 @@ export async function searchBooks(
   )}&fields=key,title,author_name,first_publish_year,edition_count,cover_i&limit=12`;
 
   try {
+    await requireAuthenticatedUser(formData);
     const response = await fetch(url, { cache: 'no-store' });
     if (!response.ok) {
       throw new Error(`API request failed with status ${response.status}`);
