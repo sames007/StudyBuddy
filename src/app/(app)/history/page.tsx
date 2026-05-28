@@ -388,7 +388,6 @@ export default function HistoryPage() {
         </CardContent>
       </Card>
       
-      {/* Delete Confirmation Dialog */}
       <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -407,7 +406,6 @@ export default function HistoryPage() {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* View Item Dialog */}
       <Dialog open={isViewOpen} onOpenChange={setIsViewOpen}>
           <DialogContent className="max-w-3xl">
               {selectedItem && (

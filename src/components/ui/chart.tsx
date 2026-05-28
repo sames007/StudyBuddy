@@ -5,7 +5,7 @@ import * as RechartsPrimitive from "recharts"
 
 import { cn } from "@/lib/utils"
 
-// Format: { THEME_NAME: CSS_SELECTOR }
+// Map theme names to the CSS selector that scopes chart color variables.
 const THEMES = { light: "", dark: ".dark" } as const
 
 export type ChartConfig = {
@@ -316,7 +316,7 @@ const ChartLegendContent = React.forwardRef<
 )
 ChartLegendContent.displayName = "ChartLegend"
 
-// Helper to extract item config from a payload.
+// Resolve the configured label/icon for a Recharts payload item.
 function getPayloadConfigFromPayload(
   config: ChartConfig,
   payload: unknown,

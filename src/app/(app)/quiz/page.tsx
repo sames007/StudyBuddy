@@ -38,7 +38,7 @@ function QuizTaker({ quiz, topic, onRestart, score }: { quiz: QuizQuestion[]; to
           type: 'quizzes' as const,
           topic: topic,
           quiz: quiz,
-          score: `${score}/${quiz.length}`, // Storing score as a string
+          score: `${score}/${quiz.length}`, // Store scores in the display format used by history.
           createdAt: serverTimestamp(),
         };
         await addDoc(studiesCollection, studyData);

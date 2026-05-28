@@ -23,7 +23,6 @@ export function Flashcard({ flashcard }: FlashcardProps) {
           isFlipped ? 'rotate-y-180' : ''
         )}
       >
-        {/* Front of the card */}
         <Card className="absolute w-full h-full backface-hidden flex flex-col justify-center items-center p-6 bg-card hover:shadow-lg transition-shadow">
            <div className="absolute top-4 right-4 bg-primary/10 text-primary p-2 rounded-full">
              <Lightbulb className="h-5 w-5" />
@@ -36,7 +35,6 @@ export function Flashcard({ flashcard }: FlashcardProps) {
            </div>
         </Card>
 
-        {/* Back of the card */}
         <Card className="absolute w-full h-full backface-hidden rotate-y-180 flex flex-col justify-center items-center p-6 bg-secondary">
            <CardContent className="text-center">
             <p className="text-lg text-secondary-foreground">{flashcard.back}</p>

@@ -7,7 +7,7 @@ import type { TutorMessage } from '@/types';
 
 const schema = z.object({
   question: z.string().trim().min(1, 'Question cannot be empty.').max(1000),
-  messages: z.string().max(20000), // JSON string of TutorMessage[]
+  messages: z.string().max(20000), // Serialized TutorMessage[] from the client.
   conversationId: z.string().optional(),
 });
 
@@ -44,7 +44,7 @@ export async function askTutor(prevState: State, formData: FormData): Promise<St
   const userMessage: TutorMessage = { role: 'user', content: question };
   const currentMessages = [...history, userMessage];
 
-  // Format history for the AI prompt
+  // Keep prior turns in the prompt so the tutor can answer in context.
   const historyAsString = history.map(m => `${m.role}: ${m.content}`).join('\n');
 
   try {

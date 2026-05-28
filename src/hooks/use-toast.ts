@@ -1,6 +1,6 @@
 "use client"
 
-// Inspired by react-hot-toast library
+// Adapted from react-hot-toast's reducer-based state pattern.
 import * as React from "react"
 
 import type {
@@ -91,8 +91,7 @@ export const reducer = (state: State, action: Action): State => {
     case "DISMISS_TOAST": {
       const { toastId } = action
 
-      // ! Side effects ! - This could be extracted into a dismissToast() action,
-      // but I'll keep it here for simplicity
+      // Queue removal after the close animation so dismissed toasts can exit cleanly.
       if (toastId) {
         addToRemoveQueue(toastId)
       } else {

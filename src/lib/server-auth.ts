@@ -24,6 +24,7 @@ export async function requireAuthenticatedUser(formData: FormData): Promise<Auth
     throw new Error('You must be signed in to use AI features.');
   }
 
+  // Verify the token before protected actions spend Gemini quota or proxy requests.
   const response = await fetch(
     `https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${firebaseConfig.apiKey}`,
     {

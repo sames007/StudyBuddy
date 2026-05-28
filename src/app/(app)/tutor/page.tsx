@@ -69,7 +69,7 @@ function TutorPageComponent() {
     }
   }, [state.messages]);
 
-  // Effect to save to Firestore after the AI responds
+  // Persist each completed tutor turn after the assistant response is available.
   useEffect(() => {
     if (isPending || !state.answer || !user) {
       return;
@@ -216,7 +216,7 @@ function TutorPageComponent() {
   );
 }
 
-// Wrap the component in Suspense because useSearchParams() requires it.
+// useSearchParams requires a Suspense boundary in App Router client components.
 export default function TutorPage() {
   return (
     <Suspense fallback={<div>Loading...</div>}>
