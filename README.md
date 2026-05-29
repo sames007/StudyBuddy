@@ -4,11 +4,11 @@ StudyBuddy is a full-stack AI study assistant built with Next.js, Firebase, and 
 
 Live app: [https://studybuddy-backend--studybuddy-4f855.us-central1.hosted.app](https://studybuddy-backend--studybuddy-4f855.us-central1.hosted.app)
 
-## Demo Video
+## Walkthrough
 
-[![Watch the silent StudyBuddy demo video](docs/screenshots/landing.png)](docs/demo/studybuddy-demo.mp4)
+![StudyBuddy walkthrough](docs/demo/walkthrough.gif)
 
-Silent walkthrough: [watch the MP4 demo](docs/demo/studybuddy-demo.mp4).
+Silent video fallback: [watch the MP4 walkthrough](docs/demo/walkthrough.mp4).
 
 ## Screenshots
 
