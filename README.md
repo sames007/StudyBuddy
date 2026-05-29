@@ -8,8 +8,6 @@ Live app: [https://studybuddy-backend--studybuddy-4f855.us-central1.hosted.app](
 
 ![StudyBuddy walkthrough](docs/demo/walkthrough.gif)
 
-Silent video fallback: [watch the MP4 walkthrough](docs/demo/walkthrough.mp4).
-
 ## Screenshots
 
 | Home | Dashboard |
