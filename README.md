@@ -152,4 +152,4 @@ firebase deploy --only firestore,storage --project studybuddy-4f855
 
 ## Cost Notes
 
-Firebase App Hosting requires the Blaze plan, so strict $0 hosting cannot be guaranteed. This project keeps `minInstances: 0`, caps `maxInstances: 2`, and uses `gemini-2.5-flash-lite` to keep normal portfolio traffic within no-cost usage where possible. Set a Google Cloud budget alert before sharing the app publicly.
+Firebase App Hosting requires the Blaze plan, so strict $0 hosting cannot be guaranteed. This project keeps `minInstances: 0`, caps `maxInstances: 2`, and uses `gemini-2.5-flash-lite` to keep normal portfolio traffic within no-cost usage where possible. 
